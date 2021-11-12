@@ -72,9 +72,12 @@
 	interface TabsContext extends ReturnType<typeof initTabs> {
 		Index: Notifiable<number>;
 	}
+
+	export const TABS_CONTEXT_KEY = 'SVELTE_HEADLESS-TABS-CONTEXT';
 </script>
 
 <script lang="ts">
+	import { setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 
 	export let current = 0;
@@ -91,4 +94,9 @@
 	$: Manual.set(manual);
 
 	$: if (onChange) onChange(current);
+
+	const { tabs, tab, panel } = initTabs({ Index, Vertical, Manual });
+	setContext(TABS_CONTEXT_KEY, { Index, tabs, tab, panel });
 </script>
+
+<slot {current} {tabs} />
