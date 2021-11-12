@@ -97,7 +97,8 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 	return {
 		handlers: {
-			handleKeyboard: ({ key, ctrlKey }) => {
+			handleKeyboard: (event) => {
+				const { key, ctrlKey } = event;
 				const isVertical = get(Vertical as Readable<boolean>);
 				const cases = {
 					vertical: {
@@ -112,7 +113,9 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 				// @ts-ignore
 				const action = cases[isVertical ? 'vertical' : 'horizontal'][key];
-				if (action && typeof action === 'function') action(ctrlKey);
+				if (action && typeof action === 'function') {
+					event.preventDefault(), action(ctrlKey);
+				}
 			},
 			handleSelection: (index) => {
 				return function () {
