@@ -92,6 +92,27 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			return isOverflowed ? goFirst() : index + 1;
 		});
 	}
+
+	return {
+		handlers: {
+			handleKeyboard: ({ key, ctrlKey }) => {
+				const isVertical = get(Vertical as Readable<boolean>);
+				const cases = {
+					vertical: {
+						ArrowUp: goPrev,
+						ArrowDown: goNext,
+					},
+					horizontal: {
+						ArrowRight: goNext,
+						ArrowLeft: goPrev,
+					},
+				};
+
+				const action = cases[isVertical ? 'vertical' : 'horizontal'][key];
+				if (action && typeof action === 'function') action(ctrlKey);
+			},
+		},
+	};
 }
 
 interface NavigableSettings {
