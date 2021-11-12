@@ -2,6 +2,7 @@ import type { Readable } from 'svelte/store';
 import type { Navigable, Notifiable } from '$lib/types';
 import { derived, get, readable, writable } from 'svelte/store';
 import { isBoolean } from '$lib/utils/predicate';
+import { useSubscribers } from '$lib/utils';
 
 export function navigable({ Items, ...Optional }: NavigableSettings): Navigable {
 	let {
@@ -127,6 +128,34 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 						Waiting.set(false), VerticalWaiting.set(false);
 					}
 				});
+			},
+		},
+		watchers: {
+			watchNavigation: ({ indexCb, manualIndexCb } = {}) => {
+				const IndexWaitingSelected = derived(
+					[Index, Selected, Waiting],
+					([$Index, $Selected, $Waiting]) =>
+						[$Index, $Selected, $Waiting] as [number, HTMLElement | undefined, boolean]
+				);
+
+				const ManualNWaiting = derived(
+					[ManualIndex, Waiting, Manual as Readable<boolean>, Active],
+					([$Idx, $Wait, $Manual, $Active]) =>
+						[$Idx, $Wait, $Manual, $Active] as [number, boolean, boolean, HTMLElement]
+				);
+
+				return useSubscribers(
+					IndexWaitingSelected.subscribe(([index, selected, waiting]) => {
+						if (!waiting && selected) selected.focus();
+						if (!waiting && indexCb) {
+							indexCb(index), onChange(index);
+						}
+					}),
+					ManualNWaiting.subscribe(([index, waiting, isManual, active]) => {
+						if (active && (!waiting || isManual)) active.focus();
+						if (!waiting && manualIndexCb) manualIndexCb(index);
+					})
+				);
 			},
 		},
 	};
