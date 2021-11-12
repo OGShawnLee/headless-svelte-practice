@@ -1,6 +1,6 @@
 import type { Readable } from 'svelte/store';
 import type { Navigable, Notifiable } from '$lib/types';
-import { readable, writable } from 'svelte/store';
+import { derived, get, readable, writable } from 'svelte/store';
 import { isBoolean } from '$lib/utils/predicate';
 
 export function navigable({ Items, ...Optional }: NavigableSettings): Navigable {
@@ -17,6 +17,16 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 	if (isBoolean(Vertical)) Vertical = readable(Vertical);
 	if (isBoolean(Wait)) Wait = readable(Wait);
 	if (isBoolean(VerticalWait)) VerticalWait = readable(VerticalWait);
+
+	const ManualIndex = writable(get(Index));
+	const Waiting = writable(get(Wait));
+	const VerticalWaiting = writable(get(VerticalWait));
+	const Selected = derived([Items, Index, Waiting], ([$Items, $Index, $Waiting]) => {
+		return $Waiting ? undefined : $Items[$Index];
+	});
+	const Active = derived([Items, ManualIndex], ([$Items, $ManualIndex]) => {
+		return $Items[$ManualIndex];
+	});
 }
 
 interface NavigableSettings {
