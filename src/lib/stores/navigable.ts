@@ -27,6 +27,15 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 	const Active = derived([Items, ManualIndex], ([$Items, $ManualIndex]) => {
 		return $Items[$ManualIndex];
 	});
+
+	function isOverflowed(
+		index: number,
+		direction: 'ASCENDING' | 'DESCENDING',
+		length: number
+	) {
+		if (direction === 'ASCENDING') return index + 1 === length;
+		if (direction === 'DESCENDING') return index - 1 === -1;
+	}
 }
 
 interface NavigableSettings {
