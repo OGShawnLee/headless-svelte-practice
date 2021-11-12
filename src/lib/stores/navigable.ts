@@ -171,6 +171,18 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 				});
 			},
 		},
+		status: {
+			IsSelected: (index) => {
+				return derived(Index, ($Index) => {
+					return $Index === index;
+				});
+			},
+		},
+		lifecycle: {
+			onDestroy: (callback) => {
+				callback({ Index, ManualIndex, Waiting, VerticalWaiting });
+			},
+		},
 	};
 }
 
