@@ -46,3 +46,8 @@ export interface Registrable<T> extends Readable<T[]> {
 		watchNewItem: (callback: (newItem: T) => void) => Unsubscriber;
 	};
 }
+
+export interface SelectedStyles {
+	if?: string;
+	else?: string;
+}
