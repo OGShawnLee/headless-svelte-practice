@@ -32,3 +32,9 @@ export interface Navigable {
 		) => void;
 	};
 }
+
+export interface Notifiable<T> extends Writable<T> {
+	notify: Notifier<T>;
+}
+
+export type Notifier<T> = (val: T) => T;
