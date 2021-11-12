@@ -117,6 +117,15 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 					Waiting.set(false), VerticalWaiting.set(false);
 				};
 			},
+			handleKeyMatch: ({ key }) => {
+				get(Items).some((item, index) => {
+					const lower = item.innerText.toLowerCase();
+					if (lower.startsWith(key.toLowerCase())) {
+						Index.set(index), ManualIndex.set(index);
+						Waiting.set(false), VerticalWaiting.set(false);
+					}
+				});
+			},
 		},
 	};
 }
