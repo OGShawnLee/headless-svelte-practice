@@ -66,6 +66,32 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			if (TargetIndex !== ManualIndex) Waiting.set(false);
 		};
 	}
+
+	function goFirst() {
+		return 0;
+	}
+
+	function goLast() {
+		return get(Items).length - 1;
+	}
+
+	function goPrev(ctrlKey: boolean) {
+		navigate('DESCENDING')(({ index, isOverflowed, isWaiting, isWaitingVertical }) => {
+			if (ctrlKey) return goFirst();
+			if (isWaiting && isWaitingVertical) return VerticalWaiting.set(false), goLast();
+
+			return isOverflowed ? goLast() : index - 1;
+		});
+	}
+
+	function goNext(ctrlKey: boolean) {
+		navigate('ASCENDING')(({ index, isOverflowed, isWaiting, isWaitingVertical }) => {
+			if (ctrlKey) return goLast();
+			if (isWaiting && isWaitingVertical) return VerticalWaiting.set(false), goFirst();
+
+			return isOverflowed ? goFirst() : index + 1;
+		});
+	}
 }
 
 interface NavigableSettings {
