@@ -157,6 +157,19 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 					})
 				);
 			},
+			watchActive: (callback) => {
+				let previous: HTMLElement;
+				return Active.subscribe((active) => {
+					callback(active, previous), (previous = active);
+				});
+			},
+			watchSelected: (callback) => {
+				let previous: HTMLElement | undefined;
+				return Selected.subscribe((selected) => {
+					if (selected) callback(selected, previous);
+					previous = selected;
+				});
+			},
 		},
 	};
 }
