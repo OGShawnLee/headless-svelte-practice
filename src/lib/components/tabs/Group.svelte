@@ -1,5 +1,13 @@
-<script context="module">
+<script context="module" lang="ts">
+	import type { Readable } from 'svelte/store';
+	import type { Notifiable } from '$lib/types';
 	import { notifiable } from '$lib/stores';
+
+	interface TabsSettings {
+		Index: Notifiable<number>;
+		Manual: Readable<boolean>;
+		Vertical: Readable<boolean>;
+	}
 </script>
 
 <script lang="ts">
