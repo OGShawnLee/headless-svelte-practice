@@ -1,7 +1,59 @@
 <script context="module" lang="ts">
 	import type { Readable } from 'svelte/store';
-	import type { Notifiable } from '$lib/types';
-	import { notifiable } from '$lib/stores';
+	import type { Notifiable, Notifier } from '$lib/types';
+	import { navigable, notifiable, registrable } from '$lib/stores';
+	import { useSubscribers } from '$lib/utils';
+
+	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
+		const Tabs = registrable<HTMLElement>([]);
+		const Panels = registrable<number>([]);
+		const config = { Items: Tabs, Index, Manual, Vertical };
+		const { handlers, watchers, ...Navigable } = navigable(config);
+
+		return {
+			tabs: (node: HTMLElement) => {
+				const { handleKeyboard } = handlers;
+				const { watchNavigation, watchSelected } = watchers;
+
+				const DisposeSubscribers = useSubscribers(
+					watchNavigation(),
+					watchSelected((selected, previous) => {
+						if (previous) previous.style.color = 'red';
+						selected.style.color = 'green';
+					})
+				);
+
+				node.addEventListener('keydown', handleKeyboard);
+				return {
+					destroy: () => {
+						DisposeSubscribers;
+						node.removeEventListener('keydown', handleKeyboard);
+					},
+				};
+			},
+			tab: (node: HTMLElement, notifySelected: Notifier<boolean>) => {
+				const registeredIndex = Tabs.register(node, (button) => {
+					button.tabIndex = -1;
+				});
+
+				const IsSelected = Navigable.status.IsSelected(registeredIndex);
+				const StopSelected = IsSelected.subscribe(notifySelected);
+
+				const selectTab = handlers.handleSelection(registeredIndex);
+				node.addEventListener('click', selectTab);
+				return {
+					destroy: () => {
+						Tabs.unregister(node), StopSelected();
+						node.removeEventListener('click', selectTab);
+					},
+				};
+			},
+			panel: {
+				register: Panels.register,
+				unregister: Panels.unregister,
+			},
+		};
+	}
 
 	interface TabsSettings {
 		Index: Notifiable<number>;
