@@ -1,5 +1,23 @@
 import type { Readable } from 'svelte/store';
-import type { Notifiable } from '$lib/types';
+import type { Navigable, Notifiable } from '$lib/types';
+import { readable, writable } from 'svelte/store';
+import { isBoolean } from '$lib/utils/predicate';
+
+export function navigable({ Items, ...Optional }: NavigableSettings): Navigable {
+	let {
+		Index = writable(0),
+		Manual = readable(false),
+		Vertical = readable(false),
+		Wait = readable(false),
+		VerticalWait = readable(false),
+		onChange = () => void 0,
+	} = Optional;
+
+	if (isBoolean(Manual)) Manual = readable(Manual);
+	if (isBoolean(Vertical)) Vertical = readable(Vertical);
+	if (isBoolean(Wait)) Wait = readable(Wait);
+	if (isBoolean(VerticalWait)) VerticalWait = readable(VerticalWait);
+}
 
 interface NavigableSettings {
 	Items: Readable<HTMLElement[]>;
