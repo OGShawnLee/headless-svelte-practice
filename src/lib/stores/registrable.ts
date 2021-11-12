@@ -11,17 +11,20 @@ export function registrable<T>(val: T[]): Registrable<T> {
 		register: (val, onRegister) => {
 			let registeredIndex = 0;
 
-			NewItem.set(val);
+			val && NewItem.set(val);
 			Registered.update((items) => {
 				registeredIndex = items.length;
-				if (items.includes(val)) throw Error('Duplicate Item');
-				if (!val && isNumberArray(items)) {
-					if (onRegister) onRegister(val);
-					return [...items, registeredIndex] as unknown as T[];
+				if (val) {
+					if (items.includes(val)) throw new Error('Duplicate Value');
+
+					onRegister && onRegister(val);
+					return [...items, val];
 				}
 
-				if (onRegister) onRegister(val);
-				return [...items, val];
+				if (isNumberArray(items)) {
+					onRegister && onRegister(val as T);
+					return [...items, registeredIndex] as unknown as T[];
+				} else throw new Error('Invalid Value');
 			});
 
 			return registeredIndex;
