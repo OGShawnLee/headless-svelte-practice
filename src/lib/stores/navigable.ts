@@ -36,6 +36,36 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 		if (direction === 'ASCENDING') return index + 1 === length;
 		if (direction === 'DESCENDING') return index - 1 === -1;
 	}
+
+	function getTargetIndex() {
+		return get(Manual as Readable<boolean>) ? ManualIndex : Index;
+	}
+
+	function navigate(direction: 'ASCENDING' | 'DESCENDING') {
+		const TargetIndex = getTargetIndex();
+		return function (
+			callback: (state: {
+				index: number;
+				isOverflowed: boolean;
+				isWaiting: boolean;
+				isWaitingVertical: boolean;
+			}) => number
+		) {
+			TargetIndex.update((index) => {
+				const length = get(Items).length;
+				const isWaiting = get(Waiting);
+				const isWaitingVertical = get(VerticalWaiting);
+				return callback({
+					index,
+					isOverflowed: isOverflowed(index, direction, length),
+					isWaiting,
+					isWaitingVertical,
+				});
+			});
+
+			if (TargetIndex !== ManualIndex) Waiting.set(false);
+		};
+	}
 }
 
 interface NavigableSettings {
