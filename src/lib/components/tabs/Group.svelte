@@ -1,8 +1,8 @@
 <script context="module" lang="ts">
 	import type { Readable } from 'svelte/store';
-	import type { Notifiable, Notifier } from '$lib/types';
+	import type { Notifiable, Notifier, SelectedStyles } from '$lib/types';
 	import { navigable, notifiable, registrable } from '$lib/stores';
-	import { useSubscribers } from '$lib/utils';
+	import { useSubscribers, handleSelectedStyles } from '$lib/utils';
 	import { isObject } from '$lib/utils/predicate';
 
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
@@ -12,16 +12,14 @@
 		const { handlers, watchers, ...Navigable } = navigable(config);
 
 		return {
-			tabs: (node: HTMLElement) => {
+			tabs: (node: HTMLElement, styles?: SelectedStyles) => {
 				const { handleKeyboard } = handlers;
 				const { watchNavigation, watchSelected } = watchers;
 
+				const stylesHandler = handleSelectedStyles(styles);
 				const DisposeSubscribers = useSubscribers(
 					watchNavigation(),
-					watchSelected((selected, previous) => {
-						if (previous) previous.style.color = 'red';
-						selected.style.color = 'green';
-					})
+					styles && watchSelected(stylesHandler)
 				);
 
 				node.addEventListener('keydown', handleKeyboard);
