@@ -4,6 +4,7 @@
 	import { navigable, notifiable, registrable } from '$lib/stores';
 	import { useSubscribers, handleSelectedStyles } from '$lib/utils';
 	import { isObject } from '$lib/utils/predicate';
+	import { DOMController } from '$lib/utils/DOMController';
 
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
 		const Tabs = registrable<HTMLElement>([]);
@@ -15,11 +16,16 @@
 			tabs: (node: HTMLElement, styles?: SelectedStyles) => {
 				const { handleKeyboard } = handlers;
 				const { watchNavigation, watchSelected } = watchers;
+				const { makeFocusable, removeFocusable } = DOMController;
 
 				const stylesHandler = handleSelectedStyles(styles);
 				const DisposeSubscribers = useSubscribers(
 					watchNavigation(),
-					styles && watchSelected(stylesHandler)
+					watchSelected((selected, previous) => {
+						stylesHandler(selected, previous);
+						if (previous) removeFocusable(previous);
+						makeFocusable(selected);
+					})
 				);
 
 				node.addEventListener('keydown', handleKeyboard);
@@ -31,9 +37,8 @@
 				};
 			},
 			tab: (node: HTMLElement, notifySelected: Notifier<boolean>) => {
-				const registeredIndex = Tabs.register(node, (button) => {
-					button.tabIndex = -1;
-				});
+				const { removeFocusable } = DOMController;
+				const registeredIndex = Tabs.register(node, removeFocusable);
 
 				const IsSelected = Navigable.status.IsSelected(registeredIndex);
 				const StopSelected = IsSelected.subscribe(notifySelected);
