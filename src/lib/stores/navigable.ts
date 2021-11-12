@@ -35,6 +35,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 	) {
 		if (direction === 'ASCENDING') return index + 1 === length;
 		if (direction === 'DESCENDING') return index - 1 === -1;
+		throw new Error('Invalid Direction');
 	}
 
 	function getTargetIndex() {
@@ -108,6 +109,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 					},
 				};
 
+				// @ts-ignore
 				const action = cases[isVertical ? 'vertical' : 'horizontal'][key];
 				if (action && typeof action === 'function') action(ctrlKey);
 			},
