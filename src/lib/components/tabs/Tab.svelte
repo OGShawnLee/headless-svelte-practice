@@ -1,7 +1,7 @@
 <script context="module">
 	export { default as TabGroup } from './Group.svelte';
 	export { default as TabPanel } from './Panel.svelte';
-	export { default as TabList } from './Tabs.svelte';
+	export { default as TabList } from './List.svelte';
 	export { default as TabPanels } from './Panels.svelte';
 </script>
 
