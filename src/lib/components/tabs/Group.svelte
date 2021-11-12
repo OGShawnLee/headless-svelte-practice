@@ -3,6 +3,7 @@
 	import type { Notifiable, Notifier } from '$lib/types';
 	import { navigable, notifiable, registrable } from '$lib/stores';
 	import { useSubscribers } from '$lib/utils';
+	import { isObject } from '$lib/utils/predicate';
 
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
 		const Tabs = registrable<HTMLElement>([]);
@@ -59,6 +60,17 @@
 		Index: Notifiable<number>;
 		Manual: Readable<boolean>;
 		Vertical: Readable<boolean>;
+	}
+
+	export function isTabsContext(val: unknown): val is TabsContext {
+		if (!isObject(val)) return false;
+		if (!('Index' in val)) return false;
+		if (!('panel' in val)) return false;
+		return 'tabs' in val && 'tab' in val;
+	}
+
+	interface TabsContext extends ReturnType<typeof initTabs> {
+		Index: Notifiable<number>;
 	}
 </script>
 
