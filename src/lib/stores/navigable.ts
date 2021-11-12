@@ -111,6 +111,12 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 				const action = cases[isVertical ? 'vertical' : 'horizontal'][key];
 				if (action && typeof action === 'function') action(ctrlKey);
 			},
+			handleSelection: (index) => {
+				return function () {
+					Index.set(index), ManualIndex.set(index);
+					Waiting.set(false), VerticalWaiting.set(false);
+				};
+			},
 		},
 	};
 }
