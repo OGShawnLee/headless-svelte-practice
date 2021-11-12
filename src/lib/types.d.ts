@@ -1,4 +1,4 @@
-import type { Writable, Readable } from 'svelte/store';
+import type { Writable, Readable, Unsubscriber } from 'svelte/store';
 
 export interface Navigable {
 	handlers: {
