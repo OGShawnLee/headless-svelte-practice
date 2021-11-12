@@ -1,4 +1,4 @@
-import type { Writable } from 'svelte/store';
+import type { Writable, Readable } from 'svelte/store';
 
 export interface Navigable {
 	handlers: {
@@ -38,3 +38,11 @@ export interface Notifiable<T> extends Writable<T> {
 }
 
 export type Notifier<T> = (val: T) => T;
+
+export interface Registrable<T> extends Readable<T[]> {
+	register: (val?: T, onRegister?: (val: T) => void) => number;
+	unregister: (val: T) => void;
+	watchers: {
+		watchNewItem: (callback: (newItem: T) => void) => Unsubscriber;
+	};
+}
