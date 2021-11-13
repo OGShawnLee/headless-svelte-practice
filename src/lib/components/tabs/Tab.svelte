@@ -1,10 +1,3 @@
-<script context="module">
-	export { default as TabGroup } from './Group.svelte';
-	export { default as TabPanel } from './Panel.svelte';
-	export { default as TabList } from './List.svelte';
-	export { default as TabPanels } from './Panels.svelte';
-</script>
-
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import { isTabsContext, TABS_CONTEXT_KEY } from './Group.svelte';
