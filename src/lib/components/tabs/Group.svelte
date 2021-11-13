@@ -14,7 +14,7 @@
 
 		return {
 			tabs: (node: HTMLElement, styles?: SelectedStyles) => {
-				const { handleKeyboard } = handlers;
+				const { handleKeyboard, createManualBlurHandler } = handlers;
 				const { watchNavigation, watchSelected } = watchers;
 				const { makeFocusable, removeFocusable } = DOMController;
 
@@ -33,11 +33,15 @@
 					})
 				);
 
+				const { handleManualBlur, removeInternal } = createManualBlurHandler(node);
 				node.addEventListener('keydown', handleKeyboard);
+				node.addEventListener('focusin', handleManualBlur);
 				return {
 					destroy: () => {
 						DisposeSubscribers;
 						node.removeEventListener('keydown', handleKeyboard);
+						node.removeEventListener('focusin', handleManualBlur);
+						removeInternal();
 					},
 				};
 			},
