@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import type { Registrable } from '$lib/types';
 import { isNumberArray } from '$lib/utils/predicate';
 
@@ -33,6 +33,12 @@ export function registrable<T>(val: T[]): Registrable<T> {
 			Registered.update((items) => {
 				return items.filter((item) => item !== val);
 			});
+		},
+		useItems: (callback) => {
+			const items = get(Registered);
+			for (let index = 0; index < items.length; index++) {
+				callback(items[index]);
+			}
 		},
 		watchers: {
 			watchNewItem: (callback) => {
