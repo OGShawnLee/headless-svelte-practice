@@ -1,7 +1,7 @@
 import type { Readable } from 'svelte/store';
 import type { Navigable, Notifiable } from '$lib/types';
 import { derived, get, readable, writable } from 'svelte/store';
-import { isBoolean } from '$lib/utils/predicate';
+import { isBoolean, isHTMLElement } from '$lib/utils/predicate';
 import { useSubscribers } from '$lib/utils';
 
 export function navigable({ Items, ...Optional }: NavigableSettings): Navigable {
@@ -131,6 +131,38 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 						Waiting.set(false), VerticalWaiting.set(false);
 					}
 				});
+			},
+			createManualBlurHandler: (node) => {
+				let added = false;
+				const isFocusOnSelected = (target: HTMLElement) => get(Selected) === target;
+				function handleFocusLeave(target: HTMLElement) {
+					ManualIndex.set(get(Index)), target.focus();
+					if (added) {
+						window.removeEventListener('focus', focusLeave, true);
+						added = true;
+					}
+				}
+
+				function focusLeave({ target }: FocusEvent) {
+					if (!isHTMLElement(target)) return;
+					if (isFocusOnSelected(target)) {
+						const index = get(Index);
+						return ManualIndex.set(index);
+					}
+
+					if (node.contains(target)) return;
+					handleFocusLeave(target);
+				}
+
+				return {
+					handleManualBlur: () => {
+						window.addEventListener('focus', focusLeave, true);
+						added = true;
+					},
+					removeInternal: () => {
+						window.removeEventListener('focus', focusLeave, true);
+					},
+				};
 			},
 		},
 		watchers: {
