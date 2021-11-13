@@ -19,12 +19,17 @@
 				const { makeFocusable, removeFocusable } = DOMController;
 
 				const stylesHandler = handleSelectedStyles(styles);
+				Tabs.useItems((tab) => stylesHandler({ unselected: tab }));
+
 				const DisposeSubscribers = useSubscribers(
 					watchNavigation(),
 					watchSelected((selected, previous) => {
-						stylesHandler(selected, previous);
+						stylesHandler({ selected, unselected: previous });
 						if (previous) removeFocusable(previous);
 						makeFocusable(selected);
+					}),
+					Tabs.watchers.watchNewItem((newTab) => {
+						stylesHandler({ unselected: newTab });
 					})
 				);
 
