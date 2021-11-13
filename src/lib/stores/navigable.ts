@@ -66,6 +66,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			});
 
 			if (TargetIndex !== ManualIndex) Waiting.set(false);
+			get(Active)?.focus();
 		};
 	}
 
@@ -179,15 +180,16 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 				return useSubscribers(
 					IndexNWaiting.subscribe(([index, waiting]) => {
-						const selected = get(Selected);
-						if (!waiting && selected) selected.focus();
+						ManualIndex.set(index);
+						// const selected = get(Selected);
+						// if (!waiting && selected) selected.focus();
 						if (!waiting && indexCb) {
 							indexCb(index), onChange(index);
 						}
 					}),
 					ManualNWaiting.subscribe(([index, waiting, isManual]) => {
-						const active = get(Active);
-						if (active && (!waiting || isManual)) active.focus();
+						// const active = get(Active);
+						// if (active && (!waiting || isManual)) active.focus();
 						if (!waiting && manualIndexCb) manualIndexCb(index);
 					})
 				);
