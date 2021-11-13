@@ -135,26 +135,26 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 		},
 		watchers: {
 			watchNavigation: ({ indexCb, manualIndexCb } = {}) => {
-				const IndexWaitingSelected = derived(
-					[Index, Selected, Waiting],
-					([$Index, $Selected, $Waiting]) =>
-						[$Index, $Selected, $Waiting] as [number, HTMLElement | undefined, boolean]
+				const IndexNWaiting = derived(
+					[Index, Waiting],
+					([$Index, $Waiting]) => [$Index, $Waiting] as [number, boolean]
 				);
 
 				const ManualNWaiting = derived(
-					[ManualIndex, Waiting, Manual as Readable<boolean>, Active],
-					([$Idx, $Wait, $Manual, $Active]) =>
-						[$Idx, $Wait, $Manual, $Active] as [number, boolean, boolean, HTMLElement]
+					[ManualIndex, Waiting, Manual as Readable<boolean>],
+					([$Idx, $Wait, $Manual]) => [$Idx, $Wait, $Manual] as [number, boolean, boolean]
 				);
 
 				return useSubscribers(
-					IndexWaitingSelected.subscribe(([index, selected, waiting]) => {
+					IndexNWaiting.subscribe(([index, waiting]) => {
+						const selected = get(Selected);
 						if (!waiting && selected) selected.focus();
 						if (!waiting && indexCb) {
 							indexCb(index), onChange(index);
 						}
 					}),
-					ManualNWaiting.subscribe(([index, waiting, isManual, active]) => {
+					ManualNWaiting.subscribe(([index, waiting, isManual]) => {
+						const active = get(Active);
 						if (active && (!waiting || isManual)) active.focus();
 						if (!waiting && manualIndexCb) manualIndexCb(index);
 					})
@@ -169,7 +169,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			watchSelected: (callback) => {
 				let previous: HTMLElement | undefined;
 				return Selected.subscribe((selected) => {
-					if (selected) callback(selected, previous);
+					if (selected && selected !== previous) callback(selected, previous);
 					previous = selected;
 				});
 			},
