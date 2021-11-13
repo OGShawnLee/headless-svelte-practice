@@ -22,14 +22,14 @@
 				Tabs.useItems((tab) => stylesHandler({ unselected: tab }));
 
 				const DisposeSubscribers = useSubscribers(
+					Tabs.watchers.watchNewItem((newTab) => {
+						stylesHandler({ unselected: newTab });
+					}),
 					watchNavigation(),
 					watchSelected((selected, previous) => {
 						stylesHandler({ selected, unselected: previous });
 						if (previous) removeFocusable(previous);
 						makeFocusable(selected);
-					}),
-					Tabs.watchers.watchNewItem((newTab) => {
-						stylesHandler({ unselected: newTab });
 					})
 				);
 
