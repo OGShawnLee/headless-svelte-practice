@@ -1,10 +1,16 @@
 import type { Writable, Readable, Unsubscriber } from 'svelte/store';
 
+export type EventListenerRemover = () => void;
+
 export interface Navigable {
 	handlers: {
 		handleSelection: (index: number) => () => void;
 		handleKeyboard: (event: KeyboardEvent) => void;
 		handleKeyMatch: (event: KeyboardEvent) => void;
+		createManualBlurHandler: (node: HTMLElement) => {
+			handleManualBlur: (event: FocusEvent) => void;
+			removeInternal: EventListenerRemover;
+		};
 	};
 	watchers: {
 		watchNavigation: (callback?: {
