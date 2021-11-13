@@ -42,6 +42,7 @@ export type Notifier<T> = (val: T) => T;
 export interface Registrable<T> extends Readable<T[]> {
 	register: (val?: T, onRegister?: (val: T) => void) => number;
 	unregister: (val: T) => void;
+	useItems: (callback: (item: T) => void) => void;
 	watchers: {
 		watchNewItem: (callback: (newItem: T) => void) => Unsubscriber;
 	};
