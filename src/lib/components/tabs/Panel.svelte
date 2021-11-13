@@ -5,6 +5,9 @@
 	const TabsContext = getContext(TABS_CONTEXT_KEY);
 	if (!isTabsContext(TabsContext)) throw Error('Invalid Tabs Context');
 
+	let className = '';
+	export { className as class };
+
 	const { Index, panel } = TabsContext;
 
 	let registeredIndex: number = 0;
@@ -18,5 +21,7 @@
 </script>
 
 {#if $Index === registeredIndex}
-	<slot>{registeredIndex}</slot>
+	<div class={className}>
+		<slot>{registeredIndex}</slot>
+	</div>
 {/if}
