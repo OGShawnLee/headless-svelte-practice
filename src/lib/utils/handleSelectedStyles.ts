@@ -10,18 +10,19 @@ function safeClassName(className?: string) {
 }
 
 export function handleSelectedStyles(styles?: SelectedStyles) {
-	return function (selected: HTMLElement, previous?: HTMLElement) {
+	return function (elements: { selected?: HTMLElement; unselected?: HTMLElement }) {
+		const { selected = undefined, unselected } = elements;
 		if (!styles) return;
 		const validIf = safeClassName(styles.if);
 		const validElse = safeClassName(styles.else);
 		if (validIf) {
-			validElse && selected.classList.remove(...validElse);
-			selected.classList.add(...validIf);
+			validElse && selected?.classList.remove(...validElse);
+			selected?.classList.add(...validIf);
 		}
 
 		if (validElse) {
-			validIf && previous?.classList.remove(...validIf);
-			previous?.classList.add(...validElse);
+			validIf && unselected?.classList.remove(...validIf);
+			unselected?.classList.add(...validElse);
 		}
 	};
 }
