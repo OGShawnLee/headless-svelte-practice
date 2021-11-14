@@ -5,9 +5,9 @@ type DefinedListenerBuilder = (
 	node: HTMLElement
 ) => DefinedListener;
 
-interface DefinedListener {
+interface DefinedListener<E extends Event> {
 	type: string;
-	func: (e: Event) => void;
+	func: (event: E) => void;
 	bubble?: boolean;
 }
 
