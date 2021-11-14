@@ -23,20 +23,19 @@ export interface Navigable {
 		watchActive: (
 			callback: (active: HTMLElement, previous?: HTMLElement) => void
 		) => Unsubscriber;
+		watchIsSelected: (
+			index: number,
+			callback: (isSelected: boolean) => void
+		) => Unsubscriber;
 	};
-	status: {
-		IsSelected: (index: number) => Readable<boolean>;
-	};
-	lifecycle: {
-		onDestroy: (
-			callback: (state: {
-				Index: Writable<number>;
-				ManualIndex: Writable<number>;
-				Waiting: Writable<boolean>;
-				VerticalWaiting: Writable<boolean>;
-			}) => void
-		) => void;
-	};
+	onDestroy: (
+		callback: (state: {
+			Index: Writable<number>;
+			ManualIndex: Writable<number>;
+			Waiting: Writable<boolean>;
+			VerticalWaiting: Writable<boolean>;
+		}) => void
+	) => void;
 }
 
 export interface Notifiable<T> extends Writable<T> {
