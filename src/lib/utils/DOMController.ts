@@ -1,4 +1,26 @@
+import type { DefinedListenerBuilder, EventListenerRemover } from '$lib/types';
+
 export class DOMController {
+	static useListeners(target: HTMLElement | Window | Document) {
+		return function (callback: <E extends Event>(event: E) => void, node: HTMLElement) {
+			return function (...listenerBuilders: DefinedListenerBuilder[]) {
+				const builtListeners = listenerBuilders.map((listener) => {
+					return listener(callback, node);
+				});
+
+				builtListeners.forEach(({ type, func, bubble = false }) => {
+					target.addEventListener(type, func, bubble);
+				});
+
+				return function () {
+					builtListeners.forEach(({ type, func, bubble = false }) => {
+						target.removeEventListener(type, func, bubble);
+					});
+				} as EventListenerRemover;
+			};
+		};
+	}
+
 	static makeFocusable(node: HTMLElement, tabIndex = 0) {
 		return (node.tabIndex = tabIndex), node;
 	}
