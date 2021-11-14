@@ -54,6 +54,24 @@
 							Waiting.set(true), VerticalWaiting.set(true);
 						});
 					},
+					item: (node: HTMLElement, notifySelected: Notifier<boolean>) => {
+						const registeredIndex = Items.register(node, FocusManager.removeFocusable);
+
+						const StopIsSelected = useSubscribers(
+							watchers.watchIsSelected(registeredIndex, notifySelected)
+						);
+
+						const selectNavIndex = handlers.handleSelection(registeredIndex);
+						node.addEventListener('click', selectNavIndex);
+						node.addEventListener('click', close);
+						return {
+							destroy: () => {
+								StopIsSelected(), Items.unregister(node);
+								node.removeEventListener('click', selectNavIndex);
+								node.removeEventListener('click', close);
+							},
+						};
+					},
 				};
 			},
 		};
