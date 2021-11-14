@@ -1,14 +1,14 @@
 import { isHTMLElement } from './predicate';
 
 export class DOMController {
-	readonly node: HTMLElement;
-	readonly InternalElements: Set<HTMLElement>;
-	readonly ExternalElements: Set<HTMLElement>;
+	node: HTMLElement;
+	internalElements: Set<HTMLElement>;
+	externalElements: Set<HTMLElement>;
 
 	constructor(node: HTMLElement) {
 		this.node = node;
-		this.InternalElements = new Set();
-		this.ExternalElements = new Set();
+		this.internalElements = new Set();
+		this.externalElements = new Set();
 
 		for (let index = 0; index < FOCUSABLE_ELEMENTS.length; index++) {
 			const selector = FOCUSABLE_ELEMENTS[index];
@@ -18,17 +18,17 @@ export class DOMController {
 				const element = selectedElements[counter];
 
 				if (!isHTMLElement(element)) continue;
-				if (node.contains(element)) this.InternalElements.add(element);
-				else this.ExternalElements.add(element);
+				if (node.contains(element)) this.internalElements.add(element);
+				else this.externalElements.add(element);
 			}
 		}
 	}
 
-	private createFocusOnBrowserHandler(InternalElements: HTMLElement[]) {
+	private createFocusOnBrowserHandler(internalElements: HTMLElement[]) {
 		return function (event: KeyboardEvent) {
 			const { key, shiftKey } = event;
-			const firstElement = InternalElements.find((element) => element.tabIndex >= 0);
-			const lastElement = InternalElements.at(-1);
+			const firstElement = internalElements.find((element) => element.tabIndex >= 0);
+			const lastElement = internalElements.at(-1);
 
 			const currentTarget = event.currentTarget;
 			const activeElement = document.activeElement;
@@ -43,19 +43,19 @@ export class DOMController {
 		};
 	}
 
-	trapFocus() {
+	public trapFocus() {
 		const ORIGINAL_INDEXES: number[] = [];
-		this.ExternalElements.forEach((element) => {
+		this.externalElements.forEach((element) => {
 			ORIGINAL_INDEXES.push(element.tabIndex);
 			element.tabIndex = -1;
 		});
 
-		const arrElements = Array.from(this.InternalElements.values());
+		const arrElements = Array.from(this.internalElements.values());
 		const preventFocusOnBrowser = this.createFocusOnBrowserHandler(arrElements);
 		this.node.addEventListener('keydown', preventFocusOnBrowser);
 
 		return () => {
-			Array.from(this.ExternalElements).forEach((element, index) => {
+			Array.from(this.externalElements).forEach((element, index) => {
 				const tabIndex = ORIGINAL_INDEXES[index];
 				element.tabIndex = tabIndex;
 			});
