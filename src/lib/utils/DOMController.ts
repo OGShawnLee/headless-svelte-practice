@@ -8,4 +8,8 @@ export class DOMController {
 		node.tabIndex = -1;
 		return () => this.makeFocusable(node, originalTabIndex);
 	}
+
+	static isFocusable(node: HTMLElement) {
+		return node.tabIndex >= 0;
+	}
 }
