@@ -25,6 +25,46 @@ export class DOMController {
 		}
 	}
 
+	private createFocusOnBrowserHandler(InternalElements: HTMLElement[]) {
+		return function (event: KeyboardEvent) {
+			const { key, shiftKey } = event;
+			const firstElement = InternalElements.find((element) => element.tabIndex >= 0);
+			const lastElement = InternalElements.at(-1);
+
+			const currentTarget = event.currentTarget;
+			const activeElement = document.activeElement;
+
+			if (activeElement === currentTarget) {
+				if (key === 'Tab') {
+					if (shiftKey) activeElement === firstElement && lastElement?.focus();
+					else activeElement === lastElement && firstElement?.focus();
+					event.preventDefault();
+				}
+			}
+		};
+	}
+
+	trapFocus() {
+		const ORIGINAL_INDEXES: number[] = [];
+		this.ExternalElements.forEach((element) => {
+			ORIGINAL_INDEXES.push(element.tabIndex);
+			element.tabIndex = -1;
+		});
+
+		const arrElements = Array.from(this.InternalElements.values());
+		const preventFocusOnBrowser = this.createFocusOnBrowserHandler(arrElements);
+		this.node.addEventListener('keydown', preventFocusOnBrowser);
+
+		return () => {
+			Array.from(this.ExternalElements).forEach((element, index) => {
+				const tabIndex = ORIGINAL_INDEXES[index];
+				element.tabIndex = tabIndex;
+			});
+
+			this.node.removeEventListener('keydown', preventFocusOnBrowser);
+		};
+	}
+
 	static useListeners(target: HTMLElement | Window | Document) {
 		return function (callback: <E extends Event>(event: E) => void, node: HTMLElement) {
 			return function (...listenerBuilders: DefinedListenerBuilder[]) {
