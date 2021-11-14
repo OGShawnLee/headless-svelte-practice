@@ -1,6 +1,6 @@
 import { isHTMLElement } from './predicate';
 
-export class DOMController {
+export class FocusManager {
 	node: HTMLElement;
 	internalElements: Set<HTMLElement>;
 	externalElements: Set<HTMLElement>;
