@@ -1,4 +1,3 @@
-import type { DefinedListenerBuilder, EventListenerRemover } from '$lib/types';
 import { isHTMLElement } from './predicate';
 
 export class DOMController {
@@ -62,26 +61,6 @@ export class DOMController {
 			});
 
 			this.node.removeEventListener('keydown', preventFocusOnBrowser);
-		};
-	}
-
-	static useListeners(target: HTMLElement | Window | Document) {
-		return function (callback: <E extends Event>(event: E) => void, node: HTMLElement) {
-			return function (...listenerBuilders: DefinedListenerBuilder[]) {
-				const builtListeners = listenerBuilders.map((listener) => {
-					return listener(callback, node);
-				});
-
-				builtListeners.forEach(({ type, func, bubble = false }) => {
-					target.addEventListener(type, func, bubble);
-				});
-
-				return function () {
-					builtListeners.forEach(({ type, func, bubble = false }) => {
-						target.removeEventListener(type, func, bubble);
-					});
-				} as EventListenerRemover;
-			};
 		};
 	}
 
