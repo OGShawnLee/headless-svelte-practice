@@ -1,3 +1,4 @@
+import { isHTMLElement } from './predicate';
 import type { DefinedListenerBuilder, EventListenerRemover } from '$lib/types';
 
 export function defineListener<E extends Event>(
@@ -33,3 +34,28 @@ export function useListeners(target: HTMLElement | Window | Document) {
 		};
 	};
 }
+
+export const escapeKey = defineListener<KeyboardEvent>('keydown', (callback) => {
+	return function (event) {
+		if (event.key === 'Escape') callback(event);
+	};
+});
+
+export const clickOutside = defineListener<MouseEvent>('click', (callback, node) => {
+	return function (event) {
+		if (!isHTMLElement(event.target)) return;
+		if (!node.contains(event.target)) callback(event);
+	};
+});
+
+export const focusLeave = defineListener<FocusEvent>(
+	'focusin',
+	(callback, node) => {
+		return function (event) {
+			if (!isHTMLElement(event.target)) return;
+			if (event.target === document.body) return;
+			if (!node.contains(event.target)) callback(event);
+		};
+	},
+	true
+);
