@@ -2,7 +2,7 @@
 	import type { Readable } from 'svelte/store';
 	import type { Notifier, SelectedStyles, Toggleable } from '$lib/types';
 	import { propsIn } from '$lib/utils/predicate';
-	import { navigable, registrable } from '$lib/stores';
+	import { navigable, registrable, toggleable } from '$lib/stores';
 	import { FocusManager, handleSelectedStyles, useSubscribers } from '$lib/utils';
 	import { escapeKey, clickOutside } from '$lib/utils/definedListeners';
 
@@ -102,3 +102,27 @@
 
 	export const MENU_CONTEXT_KEY = 'svelte-headless-menu';
 </script>
+
+<script lang="ts">
+	import { setContext } from 'svelte';
+	import { derived } from 'svelte/store';
+
+	let open = false;
+	const Toggleable = toggleable(open, (bool) => (open = bool));
+
+	const { button, menu, item } = initMenu({ Toggleable });
+	const Context = {
+		Open: derived(Toggleable, ($Open) => $Open),
+		close: Toggleable.close,
+		button,
+		menu,
+		item,
+	};
+
+	setContext(MENU_CONTEXT_KEY, Context);
+</script>
+
+<slot {open} {button} {menu} />
+{#if open}
+	<slot name="menu" />
+{/if}
