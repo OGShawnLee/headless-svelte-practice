@@ -91,7 +91,7 @@
 
 	interface MenuContext extends Pick<Toggleable, 'close'> {
 		Open: Readable<boolean>;
-		items: (node: HTMLElement, styles?: SelectedStyles) => void;
+		menu: (node: HTMLElement, styles?: SelectedStyles) => void;
 		item: (node: HTMLElement, notifySelected: Notifier<boolean>) => void;
 		button: (node: HTMLElement) => void;
 	}
