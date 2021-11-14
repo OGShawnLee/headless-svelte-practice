@@ -207,12 +207,10 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 					previous = selected;
 				});
 			},
-		},
-		status: {
-			IsSelected: (index) => {
+			watchIsSelected: (index, callback) => {
 				return derived(Index, ($Index) => {
 					return $Index === index;
-				});
+				}).subscribe(callback);
 			},
 		},
 		lifecycle: {
