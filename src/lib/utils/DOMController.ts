@@ -1,6 +1,30 @@
 import type { DefinedListenerBuilder, EventListenerRemover } from '$lib/types';
+import { isHTMLElement } from './predicate';
 
 export class DOMController {
+	readonly node: HTMLElement;
+	readonly InternalElements: Set<HTMLElement>;
+	readonly ExternalElements: Set<HTMLElement>;
+
+	constructor(node: HTMLElement) {
+		this.node = node;
+		this.InternalElements = new Set();
+		this.ExternalElements = new Set();
+
+		for (let index = 0; index < FOCUSABLE_ELEMENTS.length; index++) {
+			const selector = FOCUSABLE_ELEMENTS[index];
+			const selectedElements = document.querySelectorAll(selector);
+
+			for (let counter = 0; counter < selectedElements.length; counter++) {
+				const element = selectedElements[counter];
+
+				if (!isHTMLElement(element)) continue;
+				if (node.contains(element)) this.InternalElements.add(element);
+				else this.ExternalElements.add(element);
+			}
+		}
+	}
+
 	static useListeners(target: HTMLElement | Window | Document) {
 		return function (callback: <E extends Event>(event: E) => void, node: HTMLElement) {
 			return function (...listenerBuilders: DefinedListenerBuilder[]) {
