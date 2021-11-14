@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import type { Readable } from 'svelte/store';
-	import type { SelectedStyles, Toggleable } from '$lib/types';
+	import type { Notifier, SelectedStyles, Toggleable } from '$lib/types';
 	import { propsIn } from '$lib/utils/predicate';
 	import { navigable, registrable } from '$lib/stores';
 	import { FocusManager, handleSelectedStyles, useSubscribers } from '$lib/utils';
@@ -65,7 +65,7 @@
 	interface MenuContext extends Pick<Toggleable, 'close'> {
 		Open: Readable<boolean>;
 		items: (node: HTMLElement, styles?: SelectedStyles) => void;
-		item: (node: HTMLElement) => void;
+		item: (node: HTMLElement, notifySelected: Notifier<boolean>) => void;
 		button: (node: HTMLElement) => void;
 	}
 
