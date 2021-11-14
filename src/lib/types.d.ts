@@ -57,3 +57,15 @@ export interface SelectedStyles {
 	if?: string;
 	else?: string;
 }
+
+export interface Toggleable extends Readable<boolean> {
+	close: (ref?: HTMLElement | Event) => void;
+	open: () => void;
+	toggle: () => void;
+	useButton: (node: HTMLElement, ...openKeys: string[]) => EventListenerRemover;
+	usePanel: (
+		node: HTMLElement,
+		beforeClose?: (event?: Event) => void,
+		...definedListeners: DefinedListenerBuilder[]
+	) => EventListenerRemover;
+}
