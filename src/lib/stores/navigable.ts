@@ -208,8 +208,8 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 				});
 			},
 			watchIsSelected: (index, callback) => {
-				return derived(Index, ($Index) => {
-					return $Index === index;
+				return derived([Waiting, Index], ([$Waiting, $Index]) => {
+					return !$Waiting && $Index === index;
 				}).subscribe(callback);
 			},
 		},
