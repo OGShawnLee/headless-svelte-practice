@@ -1,5 +1,16 @@
 import type { Writable, Readable, Unsubscriber } from 'svelte/store';
 
+type DefinedListenerBuilder = (
+	callback: (event: Event) => void,
+	node: HTMLElement
+) => DefinedListener;
+
+interface DefinedListener {
+	type: string;
+	func: (e: Event) => void;
+	bubble?: boolean;
+}
+
 export type EventListenerRemover = () => void;
 
 export interface Navigable {
