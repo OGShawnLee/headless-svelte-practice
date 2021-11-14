@@ -1,3 +1,8 @@
+export function propsIn(val: unknown, ...properties: string[]) {
+	if (!isObject(val)) return false;
+	return properties.every((prop) => prop in val);
+}
+
 export function isBoolean(val: unknown): val is boolean {
 	return typeof val === 'boolean';
 }
