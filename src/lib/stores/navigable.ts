@@ -213,10 +213,8 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 				}).subscribe(callback);
 			},
 		},
-		lifecycle: {
-			onDestroy: (callback) => {
-				callback({ Index, ManualIndex, Waiting, VerticalWaiting });
-			},
+		onDestroy: (callback) => {
+			callback({ Index, ManualIndex, Waiting, VerticalWaiting });
 		},
 	};
 }
