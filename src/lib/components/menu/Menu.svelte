@@ -7,7 +7,7 @@
 	import { escapeKey, clickOutside } from '$lib/utils/definedListeners';
 
 	function initMenu({ Toggleable }: MenuSetttings) {
-		const { usePanel } = Toggleable;
+		const { close, useButton, usePanel } = Toggleable;
 		const Items = registrable<HTMLElement>([]);
 		const { handlers, watchers, ...Navigable } = navigable({
 			Items,
@@ -69,6 +69,15 @@
 								StopIsSelected(), Items.unregister(node);
 								node.removeEventListener('click', selectNavIndex);
 								node.removeEventListener('click', close);
+							},
+						};
+					},
+					button: (node: HTMLElement) => {
+						button = node;
+						const DisposeButton = useButton(node, 'ArrowUp', 'ArrowDown');
+						return {
+							destroy: () => {
+								DisposeButton();
 							},
 						};
 					},
