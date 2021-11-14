@@ -74,9 +74,9 @@ export interface Toggleable extends Readable<boolean> {
 	open: () => void;
 	toggle: () => void;
 	useButton: (node: HTMLElement, ...openKeys: string[]) => EventListenerRemover;
-	usePanel: (
-		node: HTMLElement,
-		beforeClose?: (event?: Event) => void,
-		...definedListeners: DefinedListenerBuilder[]
-	) => EventListenerRemover;
+	usePanel: (settings: {
+		panelElement: HTMLElement;
+		listenersBuilders: DefinedListenerBuilder[];
+		beforeClose?: (event?: Event) => void;
+	}) => EventListenerRemover;
 }
