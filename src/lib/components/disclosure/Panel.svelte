@@ -1,0 +1,19 @@
+<script lang="ts">
+	import { getContext } from 'svelte';
+	import { DISCLOSURE_CONTEXT_KEY, isDisclosureContext } from './Disclosure.svelte';
+
+	let className = '';
+	export { className as class };
+
+	const DisclosureContext = getContext(DISCLOSURE_CONTEXT_KEY);
+	if (!isDisclosureContext(DisclosureContext))
+		throw new Error('Invalid Disclosure Context');
+
+	const { Open, panel } = DisclosureContext;
+</script>
+
+{#if $Open}
+	<div class={className} use:panel>
+		<slot />
+	</div>
+{/if}
