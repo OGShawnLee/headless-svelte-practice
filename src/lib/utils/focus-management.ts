@@ -43,6 +43,23 @@ export class FocusManager {
 		};
 	}
 
+	static getInternalElements(node: HTMLElement, arr: HTMLElement[]) {
+		if (!node.hasChildNodes()) return arr.push(node), void 0;
+		Array.from(node.children).forEach((child) => {
+			if (isHTMLElement(child)) {
+				arr.push(child), this.getInternalElements(child, arr);
+			}
+		});
+	}
+
+	static focusFirstElement(node: HTMLElement) {
+		const internalElements: HTMLElement[] = [];
+		this.getInternalElements(node, internalElements);
+
+		const firstElement = internalElements.find((element) => element.tabIndex >= 0);
+		return firstElement?.focus(), Boolean(firstElement);
+	}
+
 	public trapFocus() {
 		const ORIGINAL_INDEXES: number[] = [];
 		this.externalElements.forEach((element) => {
