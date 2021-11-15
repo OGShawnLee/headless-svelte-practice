@@ -4,7 +4,7 @@
 	import { navigable, notifiable, registrable } from '$lib/stores';
 	import { useSubscribers, handleSelectedStyles } from '$lib/utils';
 	import { isObject } from '$lib/utils/predicate';
-	import { DOMController } from '$lib/utils/DOMController';
+	import { FocusManager } from '$lib/utils/';
 
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
 		const Tabs = registrable<HTMLElement>([]);
@@ -16,7 +16,7 @@
 			tabs: (node: HTMLElement, styles?: SelectedStyles) => {
 				const { handleKeyboard, createManualBlurHandler } = handlers;
 				const { watchNavigation, watchSelected } = watchers;
-				const { makeFocusable, removeFocusable } = DOMController;
+				const { makeFocusable, removeFocusable } = FocusManager;
 
 				const stylesHandler = handleSelectedStyles(styles);
 				Tabs.useItems((tab) => stylesHandler({ unselected: tab }));
@@ -46,11 +46,10 @@
 				};
 			},
 			tab: (node: HTMLElement, notifySelected: Notifier<boolean>) => {
-				const { removeFocusable } = DOMController;
+				const { removeFocusable } = FocusManager;
 				const registeredIndex = Tabs.register(node, removeFocusable);
 
-				const IsSelected = Navigable.status.IsSelected(registeredIndex);
-				const StopSelected = IsSelected.subscribe(notifySelected);
+				const StopSelected = watchers.watchIsSelected(registeredIndex, notifySelected);
 
 				const selectTab = handlers.handleSelection(registeredIndex);
 				node.addEventListener('click', selectTab);
