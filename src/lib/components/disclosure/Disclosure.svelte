@@ -8,7 +8,7 @@
 
 	function initDisclosure({ Toggleable, id }: DisclosureConfig) {
 		const { useButton, usePanel } = Toggleable;
-		Toggleable.configureAria({ id, name: 'svelte-headless', hasPopup: false });
+		Toggleable.configureAria({ id, name: DISCLOSURE_CONTEXT_KEY, hasPopup: false });
 
 		return {
 			button: (node: HTMLElement) => {
