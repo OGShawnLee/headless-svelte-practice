@@ -57,6 +57,7 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 
 	return {
 		subscribe: Open.subscribe,
+		set: Open.set,
 		toggle,
 		open,
 		close,
