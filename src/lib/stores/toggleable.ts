@@ -38,6 +38,7 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 		else if (isHTMLElement(ref)) handleClose(ref);
 		else {
 			const target = ref.target;
+			if (isHTMLElement(target) && panel.contains(target)) return handleClose(button);
 			if (ref instanceof KeyboardEvent && ref.key === 'Escape')
 				return handleClose(button);
 
