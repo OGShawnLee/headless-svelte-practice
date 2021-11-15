@@ -8,8 +8,15 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 	const Open = notifiable(isOpen, notifier);
 	let button: HTMLElement;
 
-	const open = () => Open.set(true);
-	const toggle = () => Open.update((val) => !val);
+	function open() {
+		Open.set(true);
+	}
+
+	function toggle() {
+		Open.update((isNotOpen) => {
+			return !isNotOpen;
+		});
+	}
 
 	function internalClose(beforeClose?: (event?: Event) => void) {
 		return function (event: Event) {
