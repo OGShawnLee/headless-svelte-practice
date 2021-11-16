@@ -1,7 +1,7 @@
 import { isHTMLElement } from './predicate';
 
-class DOMController {
-	protected hideScrollbar() {
+export class DOMController {
+	public static hideScrollbar() {
 		const originalOverflow = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
 		return function () {
