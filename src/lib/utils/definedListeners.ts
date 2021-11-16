@@ -35,6 +35,13 @@ export function useListeners(target: HTMLElement | Window | Document) {
 	};
 }
 
+export const clickOn = defineListener<MouseEvent>('click', (callback, node) => {
+	return function (event) {
+		if (!isHTMLElement(event.target)) return;
+		if (event.target === node) callback(event);
+	};
+});
+
 export const escapeKey = defineListener<KeyboardEvent>('keydown', (callback) => {
 	return function (event) {
 		if (event.key === 'Escape') callback(event);
