@@ -1,11 +1,22 @@
 import { isHTMLElement } from './predicate';
 
-export class FocusManager {
+class DOMController {
+	protected hideScrollbar() {
+		const originalOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		return function () {
+			document.body.style.overflow = originalOverflow;
+		};
+	}
+}
+
+export class FocusManager extends DOMController {
 	node: HTMLElement;
 	internalElements: Set<HTMLElement>;
 	externalElements: Set<HTMLElement>;
 
 	constructor(node: HTMLElement) {
+		super();
 		this.node = node;
 		this.internalElements = new Set();
 		this.externalElements = new Set();
