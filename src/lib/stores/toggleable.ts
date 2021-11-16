@@ -58,6 +58,10 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 	return {
 		subscribe: Open.subscribe,
 		set: Open.set,
+		defineElements: (elements) => {
+			if (elements.button) button = elements.button;
+			if (elements.panel) panel = elements.panel;
+		},
 		toggle,
 		open,
 		close,
