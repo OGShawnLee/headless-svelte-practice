@@ -35,22 +35,40 @@ export class FocusManager extends DOMController {
 		}
 	}
 
-	private createFocusOnBrowserHandler(internalElements: HTMLElement[]) {
-		return function (event: KeyboardEvent) {
+	private handleBrowserFocus(
+		internalElements: HTMLElement[],
+		fallback?: HTMLElement | null
+	) {
+		const numberOfElements = internalElements.length;
+		const self = this;
+
+		function handleFocus(event: KeyboardEvent, target?: HTMLElement | null) {
+			event.preventDefault(), target?.focus();
+		}
+
+		function handleTrapFocus(event: KeyboardEvent) {
 			const { key, shiftKey } = event;
+			const activeElement = document.activeElement;
+
 			const firstElement = internalElements.find((element) => element.tabIndex >= 0);
 			const lastElement = internalElements.at(-1);
 
-			const currentTarget = event.currentTarget;
-			const activeElement = document.activeElement;
+			if (key === 'Tab') {
+				if (numberOfElements === 0) return handleFocus(event, fallback);
+				if (numberOfElements === 1) return handleFocus(event, firstElement);
 
-			if (activeElement === currentTarget) {
-				if (key === 'Tab') {
-					if (shiftKey) activeElement === firstElement && lastElement?.focus();
-					else activeElement === lastElement && firstElement?.focus();
-					event.preventDefault();
+				if (self.node === activeElement) return event.preventDefault();
+				if (activeElement === firstElement) {
+					if (shiftKey) handleFocus(event, lastElement);
+				} else if (activeElement === lastElement) {
+					if (!shiftKey) handleFocus(event, firstElement);
 				}
 			}
+		}
+
+		window.addEventListener('keydown', handleTrapFocus);
+		return function () {
+			window.removeEventListener('keydown', handleTrapFocus);
 		};
 	}
 
@@ -71,7 +89,7 @@ export class FocusManager extends DOMController {
 		return firstElement?.focus(), Boolean(firstElement);
 	}
 
-	public trapFocus() {
+	public trapFocus(fallback?: HTMLElement | null) {
 		const ORIGINAL_INDEXES: number[] = [];
 		this.externalElements.forEach((element) => {
 			ORIGINAL_INDEXES.push(element.tabIndex);
@@ -79,16 +97,14 @@ export class FocusManager extends DOMController {
 		});
 
 		const arrElements = Array.from(this.internalElements.values());
-		const preventFocusOnBrowser = this.createFocusOnBrowserHandler(arrElements);
-		this.node.addEventListener('keydown', preventFocusOnBrowser);
-
+		const removeBrowserFocus = this.handleBrowserFocus(arrElements, fallback);
 		return () => {
 			Array.from(this.externalElements).forEach((element, index) => {
 				const tabIndex = ORIGINAL_INDEXES[index];
 				element.tabIndex = tabIndex;
 			});
 
-			this.node.removeEventListener('keydown', preventFocusOnBrowser);
+			removeBrowserFocus();
 		};
 	}
 
