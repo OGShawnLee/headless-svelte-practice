@@ -6,7 +6,7 @@ import { useListeners } from '$lib/utils/definedListeners';
 
 export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggleable {
 	const Open = notifiable(isOpen, notifier);
-	let button: HTMLElement, panel: HTMLElement;
+	let button: HTMLElement | undefined, panel: HTMLElement | undefined;
 	let buttonName: string;
 	let panelName: string;
 	let toggleableHasPopup: boolean;
@@ -30,15 +30,15 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 	}
 
 	function close(ref?: HTMLElement | Event) {
-		function handleClose(target: HTMLElement) {
-			Open.set(false), target.focus({ preventScroll: true });
+		function handleClose(target?: HTMLElement) {
+			Open.set(false), target?.focus({ preventScroll: true });
 		}
 
 		if (!ref) handleClose(button);
 		else if (isHTMLElement(ref)) handleClose(ref);
 		else {
 			const target = ref.target;
-			if (isHTMLElement(target) && panel.contains(target)) return handleClose(button);
+			if (isHTMLElement(target) && panel?.contains(target)) return handleClose(button);
 			if (ref instanceof KeyboardEvent && ref.key === 'Escape')
 				return handleClose(button);
 
@@ -72,9 +72,9 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 			if (button.tagName !== 'BUTTON') button.setAttribute('role', 'button');
 			if (toggleableHasPopup) button.ariaHasPopup = 'true';
 			const StopOpen = Open.subscribe((isOpen) => {
-				button.ariaExpanded = String(isOpen);
-				if (isOpen) button.setAttribute('aria-controls', panelName);
-				else button.removeAttribute('aria-controls');
+				node.ariaExpanded = String(isOpen);
+				if (isOpen) node.setAttribute('aria-controls', panelName);
+				else node.removeAttribute('aria-controls');
 			});
 
 			let handleOpenKeys: ((e: KeyboardEvent) => void) | undefined;
