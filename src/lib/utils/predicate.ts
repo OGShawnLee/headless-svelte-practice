@@ -19,3 +19,7 @@ export function isNumberArray(val: unknown): val is number[] {
 	if (!(val instanceof Array)) return false;
 	return val.every((val): val is number => typeof val === 'number');
 }
+
+export function isArray(val: unknown): val is Array<unknown> {
+	return val instanceof Array;
+}
