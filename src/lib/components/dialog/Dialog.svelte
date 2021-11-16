@@ -112,10 +112,13 @@
 	onDestroy(() => DIALOGS.unregister(id));
 
 	export let open = false;
+	export let initialFocus: HTMLElement | undefined = undefined;
+
 	const Toggleable = toggleable(open, (bool) => (open = bool));
 	const Open = derived(Toggleable, ($Open) => $Open);
 
 	$: Toggleable.set(open);
+	$: initialFocus?.focus();
 
 	const DialogState = initDialog({ Toggleable, id });
 	const { overlay, modal, title, description } = DialogState;
