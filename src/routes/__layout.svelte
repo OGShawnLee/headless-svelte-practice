@@ -3,6 +3,7 @@
 	<a href="/disclosure">Discrosure</a>
 	<a href="/menu">Menu</a>
 	<a href="/tabs">Tabs</a>
+	<a href="/popover">Popover</a>
 </nav>
 
 <slot />
