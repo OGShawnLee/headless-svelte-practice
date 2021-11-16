@@ -104,3 +104,27 @@
 		id: number;
 	}
 </script>
+
+<script lang="ts">
+	import { onDestroy, setContext } from 'svelte';
+
+	const id = DIALOGS.register();
+	onDestroy(() => DIALOGS.unregister(id));
+
+	export let open = false;
+	const Toggleable = toggleable(open, (bool) => (open = bool));
+	const Open = derived(Toggleable, ($Open) => $Open);
+
+	$: Toggleable.set(open);
+
+	const DialogState = initDialog({ Toggleable, id });
+	const { overlay, modal, title, description } = DialogState;
+	setContext(DIALOG_CONTEXT_KEY, { Open, ...DialogState });
+</script>
+
+<Portal>
+	{#if open}
+		<slot {open} {overlay} {modal} {title} {description} close={Toggleable.close} />
+		<slot name="modal" />
+	{/if}
+</Portal>
