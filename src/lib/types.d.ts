@@ -72,6 +72,7 @@ export interface SelectedStyles {
 export interface Toggleable extends Readable<boolean> {
 	set: (val: boolean) => void;
 	close: (ref?: HTMLElement | Event) => void;
+	defineElements: (elements: { button?: HTMLElement; panel?: HTMLElement }) => void;
 	open: () => void;
 	toggle: () => void;
 	useButton: (node: HTMLElement, ...openKeys: string[]) => EventListenerRemover;
