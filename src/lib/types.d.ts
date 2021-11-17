@@ -13,6 +13,16 @@ interface DefinedListener<E extends Event> {
 
 export type EventListenerRemover = () => void;
 
+export interface Hashable<K, V> extends Readable<Map<K, V>> {
+	Entries: Readable<[K, V][]>;
+	Keys: Readable<K[]>;
+	Values: Readable<V[]>;
+	register: (key: K, value: V, onRegister?: (key: K) => void) => number;
+	unregister: (key: K) => void;
+	update: (key: K, value: V) => void;
+	listenNewItem: (callback: (newItem: [K, V]) => void) => Unsubscriber;
+}
+
 export interface Navigable {
 	handlers: {
 		handleSelection: (index: number) => () => void;
