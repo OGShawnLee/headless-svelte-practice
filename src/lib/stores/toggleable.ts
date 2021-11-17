@@ -42,6 +42,10 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 			if (ref instanceof KeyboardEvent && ref.key === 'Escape')
 				return handleClose(button);
 
+			if (ref instanceof FocusEvent && isHTMLElement(target)) {
+				if (target === button) return;
+			}
+
 			if (isHTMLElement(target) && FocusManager.isFocusable(target))
 				return handleClose(target);
 
