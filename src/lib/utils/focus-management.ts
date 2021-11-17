@@ -108,6 +108,10 @@ export class FocusManager extends DOMController {
 		};
 	}
 
+	static handleSimpleTrapFocus(event: KeyboardEvent) {
+		if (event.key === 'Tab') event.preventDefault();
+	}
+
 	static makeFocusable(node: HTMLElement, tabIndex = 0) {
 		return (node.tabIndex = tabIndex), node;
 	}
