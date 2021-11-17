@@ -69,6 +69,20 @@ export interface SelectedStyles {
 	else?: string;
 }
 
+export interface StaticHash<K, V> {
+	value: Map<K, V>;
+	values: () => V[];
+	keys: () => K[];
+	entries: () => [K, V][];
+	register: (key: K, val: V) => number;
+	unregister: (key: k) => void;
+	updateItem: (
+		key: K,
+		callback: (val: V | undefined, state?: Map<K, V>) => V | undefined
+	) => void;
+	update: (key: K, val: V) => void;
+}
+
 export interface Toggleable extends Readable<boolean> {
 	set: (val: boolean) => void;
 	close: (ref?: HTMLElement | Event) => void;
