@@ -74,6 +74,31 @@ export interface Registrable<T> extends Readable<T[]> {
 	};
 }
 
+export interface Selectable<T> extends Readable<T> {
+	SelectedIndex: Writable<number>;
+	selectIndex: Writable<number>['set'];
+	selectIndexEvent: (index: number) => () => void;
+	set: Writable<T>['set'];
+	finishWaiting: () => void;
+	Keys: Hashable<HTMLElement, T>['Keys'];
+	Values: Hashable<HTMLElement, V>['Values'];
+	listenSelection: () => Unsubscriber;
+	listenNewItem: Hashable<HTMLElement, V>['listenNewItem'];
+	initOption: (optionSettings: {
+		initialValue: T;
+		initialIsSelected: boolean;
+		Selected: Notifiable<boolean>;
+	}) => {
+		set: Writable<T>['set'];
+		registerOption: (key: HTMLElement, onRegister?: (key: HTMLElement) => void) => number;
+		unregisterOption: (key: HTMLElement) => void;
+		listenOption: (key: HTMLElement, registeredIndex: number) => Unsubscriber;
+	};
+	Waiting: Readable<boolean>;
+}
+
+export type SelectableOption<T> = ReturnType<Selectable<T>['initOption']>;
+
 export interface SelectedStyles {
 	if?: string;
 	else?: string;
