@@ -80,6 +80,9 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 	function goPrev(ctrlKey: boolean) {
 		navigate('DESCENDING')(({ index, isOverflowed, isWaiting, isWaitingVertical }) => {
+			// ? hard to explain but fixes a listbox bug #index-out-of-sync
+			if (!isWaiting && isWaitingVertical) return VerticalWaiting.set(false), index;
+
 			if (ctrlKey) return goFirst();
 			if (isWaiting && isWaitingVertical) return VerticalWaiting.set(false), goLast();
 
@@ -89,6 +92,9 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 	function goNext(ctrlKey: boolean) {
 		navigate('ASCENDING')(({ index, isOverflowed, isWaiting, isWaitingVertical }) => {
+			// ? same here, i had enough of this store so no refactor coming soon
+			if (!isWaiting && isWaitingVertical) return VerticalWaiting.set(false), index;
+
 			if (ctrlKey) return goLast();
 			if (isWaiting && isWaitingVertical) return VerticalWaiting.set(false), goFirst();
 
