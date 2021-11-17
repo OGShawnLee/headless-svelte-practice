@@ -187,10 +187,9 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 				return useSubscribers(
 					IndexNWaiting.subscribe(([index, waiting]) => {
 						ManualIndex.set(index);
-						// const selected = get(Selected);
-						// if (!waiting && selected) selected.focus();
-						if (!waiting && indexCb) {
-							indexCb(index), onChange(index);
+						if (!waiting) {
+							if (indexCb) indexCb(index);
+							if (onChange) onChange(index);
 						}
 					}),
 					ManualNWaiting.subscribe(([index, waiting, isManual]) => {
