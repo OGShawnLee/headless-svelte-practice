@@ -1,12 +1,15 @@
 import { isHTMLElement } from './predicate';
 import type { DefinedListenerBuilder, EventListenerRemover } from '$lib/types';
 
-export function defineListener<E extends Event>(
-	type: string,
-	func: (callback: (event: E) => void, node: HTMLElement) => (e: E) => void,
+export function defineListener<E extends keyof HTMLElementEventMap>(
+	type: E,
+	func: (
+		callback: (event: HTMLElementEventMap[E]) => void,
+		node: HTMLElement
+	) => (e: HTMLElementEventMap[E]) => void,
 	bubble = false
 ) {
-	return function (callback: (e: E) => void, node: HTMLElement) {
+	return function (callback: (e: HTMLElementEventMap[E]) => void, node: HTMLElement) {
 		return {
 			type,
 			func: func(callback, node),
@@ -35,27 +38,27 @@ export function useListeners(target: HTMLElement | Window | Document) {
 	};
 }
 
-export const clickOn = defineListener<MouseEvent>('click', (callback, node) => {
+export const clickOn = defineListener('click', (callback, node) => {
 	return function (event) {
 		if (!isHTMLElement(event.target)) return;
 		if (event.target === node) callback(event);
 	};
 });
 
-export const escapeKey = defineListener<KeyboardEvent>('keydown', (callback) => {
+export const escapeKey = defineListener('keydown', (callback) => {
 	return function (event) {
 		if (event.key === 'Escape') callback(event);
 	};
 });
 
-export const clickOutside = defineListener<MouseEvent>('click', (callback, node) => {
+export const clickOutside = defineListener('click', (callback, node) => {
 	return function (event) {
 		if (!isHTMLElement(event.target)) return;
 		if (!node.contains(event.target)) callback(event);
 	};
 });
 
-export const focusLeave = defineListener<FocusEvent>(
+export const focusLeave = defineListener(
 	'focusin',
 	(callback, node) => {
 		return function (event) {
