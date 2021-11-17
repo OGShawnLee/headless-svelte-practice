@@ -1,4 +1,4 @@
-import type { Readable } from 'svelte/store';
+import type { Readable, Writable } from 'svelte/store';
 import type { Navigable, Notifiable } from '$lib/types';
 import { derived, get, readable, writable } from 'svelte/store';
 import { isBoolean, isHTMLElement } from '$lib/utils/predicate';
@@ -221,7 +221,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 interface NavigableSettings {
 	Items: Readable<HTMLElement[]>;
-	Index?: Notifiable<number>;
+	Index?: Notifiable<number> | Writable<number>;
 	Manual?: Readable<boolean> | boolean;
 	Vertical?: Readable<boolean> | boolean;
 	Wait?: Readable<boolean> | boolean;
