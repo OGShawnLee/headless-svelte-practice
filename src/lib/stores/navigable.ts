@@ -196,7 +196,8 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 						// const active = get(Active);
 						// if (active && (!waiting || isManual)) active.focus();
 						if (!waiting && manualIndexCb) manualIndexCb(index);
-					})
+					}),
+					(Wait as Readable<boolean>).subscribe(Waiting.set)
 				);
 			},
 			watchActive: (callback) => {
