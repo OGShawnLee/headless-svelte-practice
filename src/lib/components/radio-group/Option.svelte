@@ -27,9 +27,12 @@
 	export { className as class };
 	export let value: any = '';
 	export let selected = false;
+	export let activeClass = '';
 
 	let checked = false;
 	const Selected = notifiable(selected, (bool) => (checked = bool));
+
+	$: finalClassName = `${className} ${checked ? activeClass : ''}`;
 
 	const RadioGroupContext = getContext(RADIO_GROUP_CONTEXT_KEY);
 	if (!isRadioGroupContext(RadioGroupContext))
@@ -69,7 +72,7 @@
 <div
 	aria-labelledby={optionLabelledby}
 	aria-describedby={optionDescribedby}
-	class={className}
+	class={finalClassName}
 	id={$OptionName}
 	use:option={SelectableOption}
 >
