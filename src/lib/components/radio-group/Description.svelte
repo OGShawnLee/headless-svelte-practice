@@ -4,6 +4,9 @@
 	import { isRadioGroupContext, RADIO_GROUP_CONTEXT_KEY } from './Group.svelte';
 	import { isRadioOptionContext, RADIO_GROUP_OPTION_CONTEXT_KEY } from './Option.svelte';
 
+	let className = '';
+	export { className as class };
+
 	const hasGroupContext = hasContext(RADIO_GROUP_CONTEXT_KEY);
 	const hasOptionContext = hasContext(RADIO_GROUP_OPTION_CONTEXT_KEY);
 
@@ -41,6 +44,6 @@
 	});
 </script>
 
-<div id={descriptionName}>
+<div class={className} id={descriptionName}>
 	<slot />
 </div>
