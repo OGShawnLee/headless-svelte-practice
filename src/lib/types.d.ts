@@ -90,9 +90,14 @@ export interface Selectable<T> extends Readable<T> {
 		Selected: Notifiable<boolean>;
 	}) => {
 		set: Writable<T>['set'];
+		Id: Readable<number>;
 		registerOption: (key: HTMLElement, onRegister?: (key: HTMLElement) => void) => number;
 		unregisterOption: (key: HTMLElement) => void;
-		listenOption: (key: HTMLElement, registeredIndex: number) => Unsubscriber;
+		listenOption: (
+			key: HTMLElement,
+			registeredIndex: number,
+			isSelectedCallback?: (isSelected: boolean) => void
+		) => Unsubscriber;
 	};
 	Waiting: Readable<boolean>;
 }
