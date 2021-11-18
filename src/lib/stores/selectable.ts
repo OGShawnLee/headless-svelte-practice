@@ -62,8 +62,11 @@ export function selectable<T>(defaultValue: T, notifier: Notifier<T>): Selectabl
 		listenNewItem: hashAPI.listenNewItem,
 		initOption: ({ initialValue, initialIsSelected, Selected }) => {
 			const Value = writable(initialValue);
+			const Id = writable(0);
+
 			return {
 				set: Value.set,
+				Id: derived(Id, ($Id) => $Id),
 				registerOption: (key, onRegister) => {
 					const registeredIndex = hashAPI.register(key, initialValue, onRegister);
 					if (initialIsSelected && !isInitialized) {
@@ -72,16 +75,19 @@ export function selectable<T>(defaultValue: T, notifier: Notifier<T>): Selectabl
 						SelectedIndex.set(registeredIndex);
 					}
 
-					return registeredIndex;
+					return Id.set(registeredIndex), registeredIndex;
 				},
 				unregisterOption: (key) => {
 					onDestroy = true;
 					hashAPI.unregister(key);
 				},
-				listenOption: (key, registeredIndex) => {
+				listenOption: (key, registeredIndex, isSelectedCallback) => {
 					return useSubscribers(
 						Value.subscribe((value) => hashAPI.update(key, value)),
-						isSelected(registeredIndex).subscribe(Selected.notify),
+						isSelected(registeredIndex).subscribe((isSelected) => {
+							if (isSelectedCallback) isSelectedCallback(isSelected);
+							Selected.notify(isSelected);
+						}),
 						Selected.subscribe((selected) => {
 							if (selected && !isInitialized) SelectedIndex.set(registeredIndex);
 						})
