@@ -5,6 +5,7 @@
 	<a href="/tabs">Tabs</a>
 	<a href="/popover">Popover</a>
 	<a href="/listbox">Listbox</a>
+	<a href="/radio-group">Radio Group</a>
 </nav>
 
 <slot />
