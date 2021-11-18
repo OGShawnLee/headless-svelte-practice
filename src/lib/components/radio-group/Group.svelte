@@ -39,6 +39,24 @@
 					},
 				};
 			},
+			option: (node: HTMLElement, Option: SelectableOption<T>) => {
+				const { registerOption, unregisterOption, listenOption } = Option;
+				const registeredIndex = registerOption(node, FocusManager.removeFocusable);
+
+				const stopOption = listenOption(node, registeredIndex, (isSelected) => {
+					node.ariaChecked = String(isSelected);
+				});
+
+				node.setAttribute('role', 'radio');
+				const selectOption = handlers.handleSelection(registeredIndex);
+				node.addEventListener('click', selectOption);
+				return {
+					destroy: () => {
+						unregisterOption(node), stopOption();
+						node.removeEventListener('click', selectOption);
+					},
+				};
+			},
 		};
 	}
 
