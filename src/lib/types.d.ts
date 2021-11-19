@@ -1,5 +1,10 @@
 import type { Writable, Readable, Unsubscriber } from 'svelte/store';
 
+export interface Activable extends Readable<boolean> {
+	set: Writable<boolean>['set'];
+	toggle: () => void;
+}
+
 type DefinedListenerBuilder = (
 	callback: (event: Event) => void,
 	node: HTMLElement
