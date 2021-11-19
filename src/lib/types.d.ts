@@ -1,5 +1,8 @@
 import type { Writable, Readable, Unsubscriber } from 'svelte/store';
 
+export type Action<P> = (node: HTMLElement, param: P) => void;
+export type SoftAction = (node: HTMLElement) => void;
+
 export interface Activable extends Readable<boolean> {
 	set: Writable<boolean>['set'];
 	toggle: () => void;
