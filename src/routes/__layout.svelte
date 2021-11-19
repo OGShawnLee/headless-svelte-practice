@@ -6,6 +6,7 @@
 	<a href="/popover">Popover</a>
 	<a href="/listbox">Listbox</a>
 	<a href="/radio-group">Radio Group</a>
+	<a href="/switch">Switch</a>
 </nav>
 
 <slot />
