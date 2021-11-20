@@ -4,7 +4,7 @@
 	import { derived } from 'svelte/store';
 	import { toggleable } from '$lib/stores';
 	import { propsIn } from '$lib/utils/predicate';
-	import { clickOn, clickOutside, escapeKey } from '$lib/utils/definedListeners';
+	import { clickOutside, escapeKey } from '$lib/utils/definedListeners';
 	import Portal, { portal } from 'svelte-portal/src/Portal.svelte';
 	import { isHTMLElement } from '$lib/utils/predicate';
 	import { DOMController, FocusManager, use_id, useNamer } from '$lib/utils';
@@ -21,16 +21,9 @@
 		const description_id = nameSubcomponent('description');
 		const overlay_id = nameSubcomponent('overlay');
 		return {
-			overlay: (node: HTMLElement, tailwind?: boolean) => {
-				const { func: closeInside } = clickOn(() => {
-					Toggleable.set(false);
-				}, node);
-
-				if (tailwind) node.classList.add('fixed', 'inset-0');
-				else {
-					node.style.position = 'fixed';
-					node.style.inset = '0 0 0 0';
-				}
+			overlay: (node: HTMLElement) => {
+				const closeInside = (event: MouseEvent) =>
+					event.target === node ? Toggleable.set(false) : void 0;
 
 				node.id = overlay_id;
 				node.addEventListener('click', closeInside);
