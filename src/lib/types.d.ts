@@ -143,5 +143,4 @@ export interface Toggleable extends Readable<boolean> {
 		listenersBuilders?: DefinedListenerBuilder[];
 		beforeClose?: (event?: Event) => void;
 	}) => EventListenerRemover;
-	configureAria: (settings: { id: number; name: string; hasPopup: boolean }) => void;
 }

@@ -7,9 +7,6 @@ import { useListeners } from '$lib/utils/definedListeners';
 export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggleable {
 	const Open = notifiable(isOpen, notifier);
 	let button: HTMLElement | undefined, panel: HTMLElement | undefined;
-	let buttonName: string;
-	let panelName: string;
-	let toggleableHasPopup: boolean;
 
 	function open() {
 		Open.set(true);
@@ -72,14 +69,7 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 		useButton: (node, ...openKeys) => {
 			button = node;
 
-			button.id = buttonName;
 			if (button.tagName !== 'BUTTON') button.setAttribute('role', 'button');
-			if (toggleableHasPopup) button.ariaHasPopup = 'true';
-			const StopOpen = Open.subscribe((isOpen) => {
-				node.ariaExpanded = String(isOpen);
-				if (isOpen) node.setAttribute('aria-controls', panelName);
-				else node.removeAttribute('aria-controls');
-			});
 
 			let handleOpenKeys: ((e: KeyboardEvent) => void) | undefined;
 			if (openKeys.length) {
@@ -89,22 +79,15 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 
 			node.addEventListener('click', toggle);
 			return function () {
-				StopOpen();
 				node.removeEventListener('click', toggle);
 				if (handleOpenKeys) node.removeEventListener('keydown', handleOpenKeys);
 			};
 		},
 		usePanel: ({ panelElement, beforeClose, listenersBuilders = [] }) => {
 			panel = panelElement;
-			panelElement.id = panelName;
 
 			const close = internalClose(beforeClose);
 			return useListeners(window)(close, panelElement)(...listenersBuilders);
-		},
-		configureAria: ({ id, name, hasPopup }) => {
-			buttonName = `${name}-button-${id}`;
-			panelName = `${name}-panel-${id}`;
-			toggleableHasPopup = hasPopup;
 		},
 	};
 }
