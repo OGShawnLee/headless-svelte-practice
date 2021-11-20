@@ -69,8 +69,7 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 		useButton: (node, ...openKeys) => {
 			button = node;
 
-			if (button.tagName !== 'BUTTON') button.setAttribute('role', 'button');
-
+			button.setAttribute('role', 'button');
 			let handleOpenKeys: ((e: KeyboardEvent) => void) | undefined;
 			if (openKeys.length) {
 				handleOpenKeys = createOpenKeysHandler(openKeys);
