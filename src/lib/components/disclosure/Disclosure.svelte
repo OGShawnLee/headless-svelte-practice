@@ -36,7 +36,6 @@
 			},
 			panel: (node: HTMLElement) => {
 				const DisposePanel = usePanel({ panelElement: node });
-				FocusManager.focusFirstElement(node);
 
 				node.id = panel_id;
 				return {
