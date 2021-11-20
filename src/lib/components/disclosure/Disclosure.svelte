@@ -1,17 +1,23 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
 	import type { Readable } from 'svelte/store';
-	import { FocusManager } from '$lib/utils';
+	import { FocusManager, use_id, useNamer } from '$lib/utils';
 	import { propsIn } from '$lib/utils/predicate';
 
-	const DISCLOSURES = registrable<number>([]);
+	const generate_id = use_id();
 
-	function initDisclosure({ Toggleable, id }: DisclosureConfig) {
+	function initDisclosure({ Toggleable }: DisclosureConfig) {
 		const { useButton, usePanel } = Toggleable;
+		const id = generate_id.next().value as number;
+		const [nameSubcomponent] = useNamer('disclosure', id);
 
+		const button_id = nameSubcomponent('button');
+		const panel_id = nameSubcomponent('panel');
 		return {
 			button: (node: HTMLElement) => {
 				const DisposeButton = useButton(node);
+
+				node.id = button_id;
 				return {
 					destroy: () => DisposeButton(),
 				};
@@ -19,6 +25,8 @@
 			panel: (node: HTMLElement) => {
 				const DisposePanel = usePanel({ panelElement: node });
 				FocusManager.focusFirstElement(node);
+
+				node.id = panel_id;
 				return {
 					destroy: () => {
 						DisposePanel();
@@ -33,7 +41,6 @@
 
 	interface DisclosureConfig {
 		Toggleable: Toggleable;
-		id: number;
 	}
 
 	interface DisclosureContext {
@@ -46,11 +53,8 @@
 </script>
 
 <script lang="ts">
-	import { registrable, toggleable } from '$lib/stores';
-	import { onDestroy, setContext } from 'svelte';
-
-	let id = DISCLOSURES.register();
-	onDestroy(() => DISCLOSURES.unregister(id));
+	import { toggleable } from '$lib/stores';
+	import { setContext } from 'svelte';
 
 	export let open = false;
 
@@ -59,7 +63,7 @@
 
 	$: Toggleable.set(open);
 
-	const { button, panel } = initDisclosure({ Toggleable, id });
+	const { button, panel } = initDisclosure({ Toggleable });
 	setContext(DISCLOSURE_CONTEXT_KEY, { Open: Toggleable, button, panel });
 </script>
 
