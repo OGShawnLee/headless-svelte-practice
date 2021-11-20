@@ -38,17 +38,6 @@
 				if (!isHTMLElement(togglerButton)) throw Error('Invalid Modal Toggler');
 				defineElements({ button: togglerButton });
 
-				portal(node, `#${overlay_id}`);
-				setTimeout(() => {
-					// for some reason modal id is undefined after using portal
-					node.id = modal_id;
-				}, 150);
-
-				node.ariaModal = 'true';
-				node.setAttribute('role', 'dialog');
-				node.setAttribute('aria-labelledby', title_id);
-				node.setAttribute('aria-describedby', description_id);
-
 				const modalFocus = new FocusManager(node);
 				const restoreFocus = modalFocus.trapFocus(togglerButton);
 				FocusManager.focusFirstElement(node);
@@ -59,6 +48,17 @@
 					beforeClose: restoreFocus,
 					listenersBuilders: [escapeKey, clickOutside],
 				});
+
+				portal(node, `#${overlay_id}`);
+				setTimeout(() => {
+					// for some reason modal id is undefined after using portal
+					node.id = modal_id;
+				}, 150);
+
+				node.ariaModal = 'true';
+				node.setAttribute('role', 'dialog');
+				node.setAttribute('aria-labelledby', title_id);
+				node.setAttribute('aria-describedby', description_id);
 				return {
 					destroy: () => {
 						disposeModal(), restoreFocus(), showScrollbar();
