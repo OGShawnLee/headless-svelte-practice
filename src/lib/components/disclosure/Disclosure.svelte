@@ -16,10 +16,22 @@
 		return {
 			button: (node: HTMLElement) => {
 				const DisposeButton = useButton(node);
+				const stopSubcribers = Toggleable.subscribe((isOpen) => {
+					node.ariaExpanded = String(isOpen);
+					if (isOpen) {
+						node.setAttribute('aria-labelledby', panel_id);
+						node.setAttribute('aria-controls', panel_id);
+					} else {
+						node.removeAttribute('aria-labelledby');
+						node.removeAttribute('aria-controls');
+					}
+				});
 
 				node.id = button_id;
 				return {
-					destroy: () => DisposeButton(),
+					destroy: () => {
+						DisposeButton(), stopSubcribers();
+					},
 				};
 			},
 			panel: (node: HTMLElement) => {
