@@ -38,8 +38,8 @@
 <p>Should work as well, focus should be on first focusable element</p>
 <button on:click={() => (secondOpen = !secondOpen)}>Other Open</button>
 <Dialog bind:open={secondOpen} let:modal let:overlay let:close>
-	<div class="dialog-overlay" use:overlay transition:fade={{ duration: 150 }} />
-	<div slot="modal" class="dialog-modal" use:modal transition:scale={{ start: 0.75 }}>
+	<!-- <div class="dialog-overlay" use:overlay transition:fade={{ duration: 150 }} /> -->
+	<div class="dialog-modal" use:modal transition:scale={{ start: 0.75 }}>
 		<h1>What are you buying?</h1>
 		<p>A stranger has appeared. What are you buying?</p>
 
@@ -53,7 +53,7 @@
 <button on:click={() => (thirdOpen = !thirdOpen)}>Other Open</button>
 <Dialog bind:open={thirdOpen} let:modal let:overlay>
 	<div class="dialog-overlay" use:overlay />
-	<div slot="modal" class="dialog-modal" use:modal>
+	<div class="dialog-modal" use:modal>
 		<h1>What are you buying?</h1>
 		<p>A stranger has appeared. What are you buying?</p>
 	</div>
