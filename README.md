@@ -20,6 +20,8 @@ _Most components are missing proper testing and aria support. Some of them do no
 
 ## Progress
 
+Working on each component again refatoring, updating code and adding Aria support.
+
 ### Components
 
 - [x] Dialog
