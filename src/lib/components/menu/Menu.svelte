@@ -3,8 +3,10 @@
 	import type { Notifier, SelectedStyles, Toggleable } from '$lib/types';
 	import { propsIn } from '$lib/utils/predicate';
 	import { navigable, registrable, toggleable } from '$lib/stores';
-	import { FocusManager, handleSelectedStyles, useSubscribers } from '$lib/utils';
+	import { handleSelectedStyles, useSubscribers } from '$lib/utils';
 	import { escapeKey, clickOutside } from '$lib/utils/definedListeners';
+
+	export const MENU_CONTEXT_KEY = 'SVELTE-HEADLESS-MENU';
 
 	function initMenu({ Toggleable }: MenuSetttings) {
 		const { close, useButton, usePanel } = Toggleable;
@@ -22,9 +24,8 @@
 				const { handleKeyboard, handleKeyMatch } = handlers;
 				const { watchNavigation, watchSelected } = watchers;
 
-				FocusManager.makeFocusable(node).focus();
-				const menuFocus = new FocusManager(node);
-				const RestoreFocus = menuFocus.trapFocus();
+				makeFocusable(node).focus();
+				const RestoreFocus = useFocusTrap(node);
 
 				const DisposePanel = usePanel({
 					panelElement: node,
@@ -57,7 +58,7 @@
 				};
 			},
 			item: (node: HTMLElement, notifySelected: Notifier<boolean>) => {
-				const registeredIndex = Items.register(node, FocusManager.removeFocusable);
+				const registeredIndex = Items.register(node, removeFocusable);
 
 				const StopIsSelected = useSubscribers(
 					watchers.watchIsSelected(registeredIndex, notifySelected)
@@ -99,13 +100,16 @@
 	interface MenuSetttings {
 		Toggleable: Toggleable;
 	}
-
-	export const MENU_CONTEXT_KEY = 'svelte-headless-menu';
 </script>
 
 <script lang="ts">
 	import { setContext } from 'svelte';
 	import { derived } from 'svelte/store';
+	import {
+		makeFocusable,
+		removeFocusable,
+		useFocusTrap,
+	} from '$lib/utils/focus-management';
 
 	let open = false;
 	const Toggleable = toggleable(open, (bool) => (open = bool));

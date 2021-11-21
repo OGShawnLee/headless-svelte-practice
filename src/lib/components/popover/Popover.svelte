@@ -6,7 +6,7 @@
 	import { propsIn } from '$lib/utils/predicate';
 
 	const POPOVERS = registrable<number>([]);
-	export const POPOVERS_CONTEXT_KEY = 'svelte-headless-popover';
+	export const POPOVERS_CONTEXT_KEY = 'SVELTE-HEADLESS-POPOVER';
 
 	function initPopover({ Toggleable, id, GroupContext }: PopoverSettings) {
 		const { useButton, usePanel } = Toggleable;

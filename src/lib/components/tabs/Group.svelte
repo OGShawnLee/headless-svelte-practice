@@ -4,7 +4,9 @@
 	import { navigable, notifiable, registrable } from '$lib/stores';
 	import { useSubscribers, handleSelectedStyles } from '$lib/utils';
 	import { isObject } from '$lib/utils/predicate';
-	import { FocusManager } from '$lib/utils/';
+	import { makeFocusable, removeFocusable } from '$lib/utils/focus-management';
+
+	export const TABS_CONTEXT_KEY = 'SVELTE-HEADLESS-TABS';
 
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
 		const Tabs = registrable<HTMLElement>([]);
@@ -16,7 +18,6 @@
 			tabs: (node: HTMLElement, styles?: SelectedStyles) => {
 				const { handleKeyboard, createManualBlurHandler } = handlers;
 				const { watchNavigation, watchSelected } = watchers;
-				const { makeFocusable, removeFocusable } = FocusManager;
 
 				const stylesHandler = handleSelectedStyles(styles);
 				Tabs.useItems((tab) => stylesHandler({ unselected: tab }));
@@ -46,7 +47,6 @@
 				};
 			},
 			tab: (node: HTMLElement, notifySelected: Notifier<boolean>) => {
-				const { removeFocusable } = FocusManager;
 				const registeredIndex = Tabs.register(node, removeFocusable);
 
 				const StopSelected = watchers.watchIsSelected(registeredIndex, notifySelected);
@@ -83,8 +83,6 @@
 	interface TabsContext extends ReturnType<typeof initTabs> {
 		Index: Notifiable<number>;
 	}
-
-	export const TABS_CONTEXT_KEY = 'SVELTE_HEADLESS-TABS-CONTEXT';
 </script>
 
 <script lang="ts">
