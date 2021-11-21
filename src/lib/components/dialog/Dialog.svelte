@@ -4,7 +4,7 @@
 	import Portal, { portal } from 'svelte-portal/src/Portal.svelte';
 	import { clickOutside, escapeKey } from '$lib/utils/definedListeners';
 	import { useNamer, useSubscribers, use_id } from '$lib/utils';
-	import { focusFirstElement, useFocusTrap } from '$lib/utils/focus';
+	import { focusFirstElement, useFocusTrap } from '$lib/utils/focus-management';
 	import { hideScrollbar } from '$lib/utils/dom-management';
 	import { isHTMLElement, propsIn } from '$lib/utils/predicate';
 	import { component, toggleable } from '$lib/stores';
