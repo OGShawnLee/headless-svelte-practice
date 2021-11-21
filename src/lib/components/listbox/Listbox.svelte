@@ -2,7 +2,7 @@
 	import { derived, Readable } from 'svelte/store';
 	import type { Selectable, SelectableOption, Toggleable } from '$lib/types';
 	import { navigable, registrable, selectable, toggleable } from '$lib/stores';
-	import { FocusManager, useSubscribers } from '$lib/utils';
+	import { useSubscribers } from '$lib/utils';
 	import { clickOutside, escapeKey } from '$lib/utils/definedListeners';
 	import { propsIn } from '$lib/utils/predicate';
 
@@ -23,7 +23,6 @@
 		});
 
 		const { useButton, usePanel } = Toggleable;
-		const { makeFocusable, removeFocusable, handleSimpleTrapFocus } = FocusManager;
 
 		let button: HTMLElement | undefined;
 		return {
@@ -42,9 +41,7 @@
 				const { selectIndex } = Selectable;
 
 				makeFocusable(node).focus();
-
-				const optionsFocus = new FocusManager(node);
-				const restoreFocus = optionsFocus.trapFocus(button);
+				const restoreFocus = useFocusTrap(node, button);
 
 				const disposePanel = usePanel({
 					panelElement: node,
@@ -59,7 +56,7 @@
 					watchNavigation({ indexCb: selectIndex }),
 					watchSelected((selected, previous) => {
 						selected.style.color = 'green';
-						selected.focus()
+						selected.focus();
 						makeFocusable(selected);
 						if (previous) {
 							previous.style.color = 'red';
@@ -71,13 +68,13 @@
 
 				window.addEventListener('keydown', handleKeyboard);
 				node.addEventListener('keydown', handleKeyMatch);
-				node.addEventListener('keydown', handleSimpleTrapFocus);
+				node.addEventListener('keydown', useSimpleFocusTrap);
 				return {
 					destroy: () => {
 						disposePanel(), stopSubcribers(), restoreFocus();
 						window.addEventListener('keydown', handleKeyboard);
 						node.removeEventListener('keydown', handleKeyMatch);
-						node.removeEventListener('keydown', handleSimpleTrapFocus);
+						node.removeEventListener('keydown', useSimpleFocusTrap);
 						Navigation.onDestroy(({ VerticalWaiting }) => {
 							VerticalWaiting.set(true); // ? fixes a bug #index-out-of-sync
 						});
@@ -122,6 +119,12 @@
 
 <script lang="ts">
 	import { setContext, onDestroy } from 'svelte';
+	import {
+		makeFocusable,
+		removeFocusable,
+		useFocusTrap,
+		useSimpleFocusTrap,
+	} from '$lib/utils/focus-management';
 
 	export let value: any = '';
 	let open = false;

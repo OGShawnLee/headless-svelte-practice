@@ -2,7 +2,7 @@
 	import type { Readable, Writable } from 'svelte/store';
 	import type { Selectable, SelectableOption, SelectedStyles } from '$lib/types';
 	import { navigable, registrable, selectable } from '$lib/stores';
-	import { FocusManager, handleSelectedStyles, useSubscribers } from '$lib/utils';
+	import { handleSelectedStyles, useSubscribers } from '$lib/utils';
 	import { propsIn } from '$lib/utils/predicate';
 
 	const RADIO_GROUPS = registrable<number>([]);
@@ -25,9 +25,9 @@
 					Selectable.listenSelection(),
 					watchNavigation(),
 					watchSelected((selected, previous) => {
-						FocusManager.makeFocusable(selected);
+					makeFocusable(selected);
 						stylesHandler({ selected, unselected: previous });
-						if (previous) FocusManager.removeFocusable(previous);
+						if (previous) removeFocusable(previous);
 					})
 				);
 
@@ -42,7 +42,7 @@
 			},
 			option: (node: HTMLElement, Option: SelectableOption<T>) => {
 				const { registerOption, unregisterOption, listenOption } = Option;
-				const registeredIndex = registerOption(node, FocusManager.removeFocusable);
+				const registeredIndex = registerOption(node, removeFocusable);
 
 				const stopOption = listenOption(node, registeredIndex, (isSelected) => {
 					node.ariaChecked = String(isSelected);
@@ -88,6 +88,7 @@
 <script lang="ts">
 	import { onDestroy, onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
+import { makeFocusable, removeFocusable } from '$lib/utils/focus-management';
 
 	let className = '';
 	export { className as class };

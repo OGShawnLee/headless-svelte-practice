@@ -1,8 +1,8 @@
 import type { Notifier, Toggleable } from '$lib/types';
-import { FocusManager } from '$lib/utils/';
 import { notifiable } from '$lib/stores';
 import { isHTMLElement } from '$lib/utils/predicate';
 import { useListeners } from '$lib/utils/definedListeners';
+import { isFocusable } from '$lib/utils/focus-management';
 
 export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggleable {
 	const Open = notifiable(isOpen, notifier);
@@ -43,8 +43,7 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 				if (target === button) return;
 			}
 
-			if (isHTMLElement(target) && FocusManager.isFocusable(target))
-				return handleClose(target);
+			if (isHTMLElement(target) && isFocusable(target)) return handleClose(target);
 
 			handleClose(button);
 		}

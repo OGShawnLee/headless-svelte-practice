@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
 	import type { Readable } from 'svelte/store';
-	import { FocusManager, use_id, useNamer } from '$lib/utils';
+	import { use_id, useNamer } from '$lib/utils';
 	import { propsIn } from '$lib/utils/predicate';
 
 	const generate_id = use_id();
