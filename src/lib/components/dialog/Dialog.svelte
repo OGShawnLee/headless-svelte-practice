@@ -1,31 +1,36 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
-	import type { Readable } from 'svelte/store';
-	import { derived } from 'svelte/store';
-	import { toggleable } from '$lib/stores';
-	import { propsIn } from '$lib/utils/predicate';
-	import { clickOutside, escapeKey } from '$lib/utils/definedListeners';
+	import type { Readable, Unsubscriber } from 'svelte/store';
 	import Portal, { portal } from 'svelte-portal/src/Portal.svelte';
-	import { isHTMLElement } from '$lib/utils/predicate';
-	import { DOMController, FocusManager, use_id, useNamer } from '$lib/utils';
+	import { clickOutside, escapeKey } from '$lib/utils/definedListeners';
+	import { useNamer, useSubscribers, use_id } from '$lib/utils';
+	import { focusFirstElement, useFocusTrap } from '$lib/utils/focus';
+	import { hideScrollbar } from '$lib/utils/dom-management';
+	import { isHTMLElement, propsIn } from '$lib/utils/predicate';
+	import { component, toggleable } from '$lib/stores';
 
 	export const DIALOG_CONTEXT_KEY = 'svelte-headless-dialog';
 	const generate_id = use_id();
 
-	function initDialog({ Toggleable }: DialogSettings) {
+	function initDialog({ Toggleable, InitialFocus }: DialogSettings) {
 		const { defineElements, usePanel } = Toggleable;
 		const id = generate_id.next().value as number;
-		const [nameSubcomponent, modal_id] = useNamer('dialog', id);
+		const [baptize, modalName] = useNamer('dialog', id);
 
-		const title_id = nameSubcomponent('title');
-		const description_id = nameSubcomponent('description');
-		const overlay_id = nameSubcomponent('overlay');
+		const Title = component();
+		const Description = component();
+
+		let usingOverlay = false;
+		const overlayName = baptize('overlay');
+		const titleName = baptize('title');
+		const descriptionName = baptize('description');
 		return {
 			overlay: (node: HTMLElement) => {
+				usingOverlay = true;
 				const closeInside = (event: MouseEvent) =>
 					event.target === node ? Toggleable.set(false) : void 0;
 
-				node.id = overlay_id;
+				node.id = overlayName;
 				node.addEventListener('click', closeInside);
 				return {
 					destroy: () => {
@@ -35,81 +40,102 @@
 			},
 			modal: (node: HTMLElement) => {
 				const togglerButton = document.activeElement;
-				if (!isHTMLElement(togglerButton)) throw Error('Invalid Modal Toggler');
-				defineElements({ button: togglerButton });
+				if (isHTMLElement(togglerButton)) defineElements({ button: togglerButton });
 
-				const modalFocus = new FocusManager(node);
-				const restoreFocus = modalFocus.trapFocus(togglerButton);
-				FocusManager.focusFirstElement(node);
-				const showScrollbar = DOMController.hideScrollbar();
+				let destroyPortal = usingOverlay
+					? portal(node, `#${overlayName}`).destroy
+					: undefined;
 
-				const disposeModal = usePanel({
+				const restoreFocus = useFocusTrap(node, togglerButton);
+				const showScrollbar = hideScrollbar();
+
+				const disposePanel = usePanel({
 					panelElement: node,
 					beforeClose: restoreFocus,
-					listenersBuilders: [escapeKey, clickOutside],
+					listenersBuilders: [clickOutside, escapeKey],
 				});
 
-				portal(node, `#${overlay_id}`);
-				setTimeout(() => {
-					// for some reason modal id is undefined after using portal
-					node.id = modal_id;
-				}, 150);
+				let stopSubscribers: Unsubscriber;
+				tick().then(() => {
+					focusFirstElement(node);
+					stopSubscribers = useSubscribers(
+						InitialFocus.subscribe((element) => element?.focus()),
+						Title.subscribe((exists, id) => {
+							if (exists) node.setAttribute('aria-labelledby', id);
+							else node.removeAttribute('aria-labelledby');
+						}),
+						Description.subscribe((exists, id) => {
+							if (exists) node.setAttribute('aria-describedby', id);
+							else node.removeAttribute('aria-describedby');
+						})
+					);
+				});
 
-				node.ariaModal = 'true';
+				node.id = modalName;
+				node.ariaModal = String(true);
 				node.setAttribute('role', 'dialog');
-				node.setAttribute('aria-labelledby', title_id);
-				node.setAttribute('aria-describedby', description_id);
 				return {
 					destroy: () => {
-						disposeModal(), restoreFocus(), showScrollbar();
+						if (destroyPortal) destroyPortal();
+						if (stopSubscribers) stopSubscribers();
+						disposePanel(), showScrollbar(), restoreFocus();
 					},
 				};
 			},
 			title: (node: HTMLElement) => {
-				node.id = title_id;
+				Title.appear(node, titleName);
+				return {
+					destroy: () => {
+						Title.disappear();
+					},
+				};
 			},
 			description: (node: HTMLElement) => {
-				node.id = description_id;
+				Description.appear(node, descriptionName);
+				return {
+					destroy: () => {
+						Description.disappear();
+					},
+				};
 			},
 		};
 	}
 
+	export const isDialogContext = (val: unknown): val is DialogContext =>
+		propsIn(val, 'overlay', 'modal', 'title', 'description');
+
 	interface DialogContext {
-		Open: Readable<boolean>;
-		overlay: (node: HTMLElement, tailwind?: boolean) => void;
+		overlay: (node: HTMLElement) => void;
 		modal: (node: HTMLElement) => void;
 		title: (node: HTMLElement) => void;
 		description: (node: HTMLElement) => void;
 	}
 
-	export const isDialogContext = (val: unknown): val is DialogContext =>
-		propsIn(val, 'Open', 'overlay', 'modal', 'title', 'description');
-
 	interface DialogSettings {
 		Toggleable: Toggleable;
+		InitialFocus: Readable<HTMLElement | undefined>;
 	}
 </script>
 
 <script lang="ts">
-	import { setContext } from 'svelte';
+	import { writable } from 'svelte/store';
+	import { setContext, tick } from 'svelte';
 
 	export let open = false;
 	export let initialFocus: HTMLElement | undefined = undefined;
 
 	const Toggleable = toggleable(open, (bool) => (open = bool));
-	const Open = derived(Toggleable, ($Open) => $Open);
+	const InitialFocus = writable<HTMLElement | undefined>(initialFocus);
+	$: InitialFocus.set(initialFocus);
 
-	$: Toggleable.set(open);
-	$: initialFocus?.focus();
+	const DialogState = initDialog({ Toggleable, InitialFocus });
+	const { modal, overlay, title, description } = DialogState;
 
-	const DialogState = initDialog({ Toggleable });
-	const { overlay, modal, title, description } = DialogState;
-	setContext(DIALOG_CONTEXT_KEY, { Open, ...DialogState });
+	setContext(DIALOG_CONTEXT_KEY, DialogState);
 </script>
 
-<Portal>
-	{#if open}
-		<slot {open} {overlay} {modal} {title} {description} close={Toggleable.close} />
-		<slot name="modal" />
-	{/if}
-</Portal>
+{#if open}
+	<Portal>
+		<slot {modal} {overlay} {title} {description} close={Toggleable.close} />
+	</Portal>
+{/if}
