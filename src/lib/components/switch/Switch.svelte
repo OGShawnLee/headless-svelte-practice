@@ -5,7 +5,7 @@
 	import { useNamer, use_id } from '$lib/utils/components';
 	import { propsIn } from '$lib/utils/predicate';
 
-	export const SWITCH_KEY = 'svelte-headless-switch';
+	export const SWITCH_KEY = 'SVELTE-HEADLESS-SWITCH';
 	const generateID = use_id();
 
 	function initSwitch({ Activable }: SwitchSettings) {

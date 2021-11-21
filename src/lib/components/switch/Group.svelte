@@ -3,7 +3,7 @@
 	import { setContext } from 'svelte';
 	import { propsIn } from '$lib/utils/predicate';
 
-	export const SWITCH_GROUP_KEY = 'svelte-headless-switch-group';
+	export const SWITCH_GROUP_KEY = 'SVELTE-HEADLESS-SWITCH-GROUP';
 
 	export const isSwitchGroupContext = (val: unknown): val is SwitchGroupContext =>
 		propsIn(val, 'notifyGroupChecked', 'LabelGroupAction', 'DescriptionGroupAction');

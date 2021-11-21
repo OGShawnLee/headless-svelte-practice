@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
 
-	export const POPOVER_GROUP_CONTEXT_KEY = 'svelte-headless-popover';
+	export const POPOVER_GROUP_CONTEXT_KEY = 'SVELTE-HEADLESS-POPOVER-GROUP';
 
 	function initPopoverGroup() {
 		const { value: popovers, values, ...hashAPI } = staticHash<number, Popover>();

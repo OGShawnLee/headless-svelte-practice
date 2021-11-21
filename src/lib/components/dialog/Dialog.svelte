@@ -9,7 +9,7 @@
 	import { isHTMLElement, propsIn } from '$lib/utils/predicate';
 	import { component, toggleable } from '$lib/stores';
 
-	export const DIALOG_CONTEXT_KEY = 'svelte-headless-dialog';
+	export const DIALOG_CONTEXT_KEY = 'SVELTE-HEADLESS-DIALOG';
 	const generate_id = use_id();
 
 	function initDialog({ Toggleable, InitialFocus }: DialogSettings) {

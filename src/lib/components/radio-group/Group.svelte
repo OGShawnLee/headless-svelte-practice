@@ -6,7 +6,7 @@
 	import { propsIn } from '$lib/utils/predicate';
 
 	const RADIO_GROUPS = registrable<number>([]);
-	export const RADIO_GROUP_CONTEXT_KEY = 'svelte-headless-radio-group';
+	export const RADIO_GROUP_CONTEXT_KEY = 'SVELTE-HEADLESS-RADIO-GROUP';
 
 	function initRadioGroup<T>({ Selectable, Vertical }: RadioGroupSettings<T>) {
 		const { Keys: Buttons, SelectedIndex: Index } = Selectable;
@@ -25,7 +25,7 @@
 					Selectable.listenSelection(),
 					watchNavigation(),
 					watchSelected((selected, previous) => {
-					makeFocusable(selected);
+						makeFocusable(selected);
 						stylesHandler({ selected, unselected: previous });
 						if (previous) removeFocusable(previous);
 					})
@@ -88,7 +88,7 @@
 <script lang="ts">
 	import { onDestroy, onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
-import { makeFocusable, removeFocusable } from '$lib/utils/focus-management';
+	import { makeFocusable, removeFocusable } from '$lib/utils/focus-management';
 
 	let className = '';
 	export { className as class };

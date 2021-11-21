@@ -6,6 +6,8 @@
 	import { isObject } from '$lib/utils/predicate';
 	import { makeFocusable, removeFocusable } from '$lib/utils/focus-management';
 
+	export const TABS_CONTEXT_KEY = 'SVELTE-HEADLESS-TABS';
+
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
 		const Tabs = registrable<HTMLElement>([]);
 		const Panels = registrable<number>([]);
@@ -81,8 +83,6 @@
 	interface TabsContext extends ReturnType<typeof initTabs> {
 		Index: Notifiable<number>;
 	}
-
-	export const TABS_CONTEXT_KEY = 'SVELTE_HEADLESS-TABS-CONTEXT';
 </script>
 
 <script lang="ts">

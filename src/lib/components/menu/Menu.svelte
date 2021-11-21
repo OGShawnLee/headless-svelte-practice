@@ -6,6 +6,8 @@
 	import { handleSelectedStyles, useSubscribers } from '$lib/utils';
 	import { escapeKey, clickOutside } from '$lib/utils/definedListeners';
 
+	export const MENU_CONTEXT_KEY = 'SVELTE-HEADLESS-MENU';
+
 	function initMenu({ Toggleable }: MenuSetttings) {
 		const { close, useButton, usePanel } = Toggleable;
 		const Items = registrable<HTMLElement>([]);
@@ -98,8 +100,6 @@
 	interface MenuSetttings {
 		Toggleable: Toggleable;
 	}
-
-	export const MENU_CONTEXT_KEY = 'svelte-headless-menu';
 </script>
 
 <script lang="ts">

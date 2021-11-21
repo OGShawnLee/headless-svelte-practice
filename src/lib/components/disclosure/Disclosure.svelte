@@ -4,6 +4,7 @@
 	import { use_id, useNamer } from '$lib/utils';
 	import { propsIn } from '$lib/utils/predicate';
 
+	export const DISCLOSURE_CONTEXT_KEY = 'SVELTE-HEADLESS-DISCLOSURE';
 	const generate_id = use_id();
 
 	function initDisclosure({ Toggleable }: DisclosureConfig) {
@@ -59,8 +60,6 @@
 		button: (node: HTMLElement) => void;
 		panel: (node: HTMLElement) => void;
 	}
-
-	export const DISCLOSURE_CONTEXT_KEY = 'svelte-headless-disclosure';
 </script>
 
 <script lang="ts">
