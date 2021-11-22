@@ -1,7 +1,7 @@
-import type { Readable, Writable } from 'svelte/store';
+import type { Readable, Unsubscriber, Writable } from 'svelte/store';
 import type { NavigableLite } from '$lib/types';
 import { derived, readable, writable } from 'svelte/store';
-import { isBoolean } from '$lib/utils/predicate';
+import { isBoolean, isHTMLElement } from '$lib/utils/predicate';
 import { useSubscribers } from '$lib/utils';
 import { unstoppable } from '$lib/stores';
 
@@ -145,4 +145,56 @@ interface Settings {
 	Index?: Writable<number>;
 	Manual?: Readable<boolean> | boolean;
 	Vertical?: Readable<boolean> | boolean;
+}
+
+export function useManualBlur(
+	node: HTMLElement,
+	items: HTMLElement[],
+	Index: Readable<number>,
+	ManualIndex: Writable<number>
+) {
+	const HasLeft = writable(false);
+	const MainLoop = derived([HasLeft, Index], ([$HasLeft, $Index]) => {
+		return [$HasLeft, $Index] as [boolean, number];
+	});
+
+	let STOP_SUBSCRIBER: Unsubscriber | undefined;
+	let isEventAdded = false;
+	let currentIndex: number | undefined;
+	let selectedItem: HTMLElement | undefined;
+
+	function onFocusEnter({ target }: FocusEvent) {
+		// Syncing when user tabs to the Selected Item
+		if (target === selectedItem && currentIndex !== undefined)
+			ManualIndex.set(currentIndex);
+
+		if (isEventAdded) return;
+		(isEventAdded = true), HasLeft.set(false);
+
+		STOP_SUBSCRIBER = MainLoop.subscribe(([hasLeft, index]) => {
+			(selectedItem = items[index]), (currentIndex = index);
+			if (hasLeft) ManualIndex.set(index);
+		});
+
+		window.addEventListener('focus', handleFocusLeave, true);
+	}
+
+	function onFocusLeave() {
+		window.removeEventListener('focus', handleFocusLeave, true);
+		HasLeft.set(true), (isEventAdded = false);
+		if (STOP_SUBSCRIBER) STOP_SUBSCRIBER();
+		STOP_SUBSCRIBER = undefined;
+	}
+
+	function handleFocusLeave({ target }: FocusEvent) {
+		if (!isHTMLElement(target)) return;
+		if (!node.contains(target)) onFocusLeave();
+	}
+
+	node.addEventListener('focusin', onFocusEnter);
+	return function () {
+		HasLeft.set(false), (isEventAdded = false);
+		if (STOP_SUBSCRIBER) STOP_SUBSCRIBER = STOP_SUBSCRIBER() as undefined;
+		node.removeEventListener('focusin', onFocusEnter);
+	};
 }
