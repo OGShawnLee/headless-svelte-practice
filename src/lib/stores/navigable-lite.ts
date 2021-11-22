@@ -198,3 +198,30 @@ export function useManualBlur(
 		node.removeEventListener('focusin', onFocusEnter);
 	};
 }
+
+export function useKeyMatch(
+	node: HTMLElement,
+	items: HTMLElement[],
+	Index: Writable<number>
+) {
+	const Key = writable('');
+
+	function handleKeyMatch({ key }: KeyboardEvent) {
+		Key.set(key.toLocaleLowerCase());
+	}
+
+	const STOP_SUBSCRIBER = Key.subscribe((key) => {
+		items.some((item, index) => {
+			const text = item.textContent?.toLocaleLowerCase();
+			if (key && text?.startsWith(key)) {
+				return Index.set(index), item.focus(), true;
+			}
+		});
+	});
+
+	node.addEventListener('keydown', handleKeyMatch);
+	return function () {
+		STOP_SUBSCRIBER();
+		node.removeEventListener('keydown', handleKeyMatch);
+	};
+}
