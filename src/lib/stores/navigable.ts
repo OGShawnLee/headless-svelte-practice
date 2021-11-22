@@ -1,5 +1,5 @@
 import type { Readable, Writable } from 'svelte/store';
-import type { Navigable, Notifiable } from '$lib/types';
+import type { Navigable, NavigableLite, Notifiable } from '$lib/types';
 import { derived, get, readable, writable } from 'svelte/store';
 import { isBoolean, isHTMLElement } from '$lib/utils/predicate';
 import { useSubscribers } from '$lib/utils';
@@ -103,121 +103,117 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 	}
 
 	return {
-		handlers: {
-			handleKeyboard: (event) => {
-				const { key, ctrlKey } = event;
-				const isVertical = get(Vertical as Readable<boolean>);
-				const cases = {
-					vertical: {
-						ArrowUp: goPrev,
-						ArrowDown: goNext,
-					},
-					horizontal: {
-						ArrowRight: goNext,
-						ArrowLeft: goPrev,
-					},
-				};
+		handleKeyboard: (event) => {
+			const { key, ctrlKey } = event;
+			const isVertical = get(Vertical as Readable<boolean>);
+			const cases = {
+				vertical: {
+					ArrowUp: goPrev,
+					ArrowDown: goNext,
+				},
+				horizontal: {
+					ArrowRight: goNext,
+					ArrowLeft: goPrev,
+				},
+			};
 
-				// @ts-ignore
-				const action = cases[isVertical ? 'vertical' : 'horizontal'][key];
-				if (action && typeof action === 'function') {
-					event.preventDefault(), action(ctrlKey);
-				}
-			},
-			handleSelection: (index) => {
-				return function () {
+			// @ts-ignore
+			const action = cases[isVertical ? 'vertical' : 'horizontal'][key];
+			if (action && typeof action === 'function') {
+				event.preventDefault(), action(ctrlKey);
+			}
+		},
+		handleSelection: (index) => {
+			return function () {
+				Index.set(index), ManualIndex.set(index);
+				Waiting.set(false), VerticalWaiting.set(false);
+			};
+		},
+		handleKeyMatch: ({ key }) => {
+			get(Items).some((item, index) => {
+				const lower = item.innerText.toLowerCase();
+				if (lower.startsWith(key.toLowerCase())) {
 					Index.set(index), ManualIndex.set(index);
 					Waiting.set(false), VerticalWaiting.set(false);
-				};
-			},
-			handleKeyMatch: ({ key }) => {
-				get(Items).some((item, index) => {
-					const lower = item.innerText.toLowerCase();
-					if (lower.startsWith(key.toLowerCase())) {
-						Index.set(index), ManualIndex.set(index);
-						Waiting.set(false), VerticalWaiting.set(false);
-					}
-				});
-			},
-			createManualBlurHandler: (node) => {
-				let added = false;
-				const isFocusOnSelected = (target: HTMLElement) => get(Selected) === target;
-				function handleFocusLeave(target: HTMLElement) {
-					ManualIndex.set(get(Index)), target.focus();
-					if (added) {
-						window.removeEventListener('focus', focusLeave, true);
-						added = true;
-					}
 				}
-
-				function focusLeave({ target }: FocusEvent) {
-					if (!isHTMLElement(target)) return;
-					if (isFocusOnSelected(target)) {
-						const index = get(Index);
-						return ManualIndex.set(index);
-					}
-
-					if (node.contains(target)) return;
-					handleFocusLeave(target);
-				}
-
-				return {
-					handleManualBlur: () => {
-						window.addEventListener('focus', focusLeave, true);
-						added = true;
-					},
-					removeInternal: () => {
-						window.removeEventListener('focus', focusLeave, true);
-					},
-				};
-			},
+			});
 		},
-		watchers: {
-			watchNavigation: ({ indexCb, manualIndexCb } = {}) => {
-				const IndexNWaiting = derived(
-					[Index, Waiting],
-					([$Index, $Waiting]) => [$Index, $Waiting] as [number, boolean]
-				);
+		useManualBlur: (node) => {
+			let added = false;
+			const isFocusOnSelected = (target: HTMLElement) => get(Selected) === target;
+			function handleFocusLeave(target: HTMLElement) {
+				ManualIndex.set(get(Index)), target.focus();
+				if (added) {
+					window.removeEventListener('focus', focusLeave, true);
+					added = true;
+				}
+			}
 
-				const ManualNWaiting = derived(
-					[ManualIndex, Waiting, Manual as Readable<boolean>],
-					([$Idx, $Wait, $Manual]) => [$Idx, $Wait, $Manual] as [number, boolean, boolean]
-				);
+			function focusLeave({ target }: FocusEvent) {
+				if (!isHTMLElement(target)) return;
+				if (isFocusOnSelected(target)) {
+					const index = get(Index);
+					return ManualIndex.set(index);
+				}
 
-				return useSubscribers(
-					IndexNWaiting.subscribe(([index, waiting]) => {
-						ManualIndex.set(index);
-						if (!waiting) {
-							if (indexCb) indexCb(index);
-							if (onChange) onChange(index);
-						}
-					}),
-					ManualNWaiting.subscribe(([index, waiting, isManual]) => {
-						// const active = get(Active);
-						// if (active && (!waiting || isManual)) active.focus();
-						if (!waiting && manualIndexCb) manualIndexCb(index);
-					}),
-					(Wait as Readable<boolean>).subscribe(Waiting.set)
-				);
-			},
-			watchActive: (callback) => {
-				let previous: HTMLElement;
-				return Active.subscribe((active) => {
-					callback(active, previous), (previous = active);
-				});
-			},
-			watchSelected: (callback) => {
-				let previous: HTMLElement | undefined;
-				return Selected.subscribe((selected) => {
-					if (selected && selected !== previous) callback(selected, previous);
-					previous = selected;
-				});
-			},
-			watchIsSelected: (index, callback) => {
-				return derived([Waiting, Index], ([$Waiting, $Index]) => {
-					return !$Waiting && $Index === index;
-				}).subscribe(callback);
-			},
+				if (node.contains(target)) return;
+				handleFocusLeave(target);
+			}
+
+			return {
+				handleManualBlur: () => {
+					window.addEventListener('focus', focusLeave, true);
+					added = true;
+				},
+				removeInternal: () => {
+					window.removeEventListener('focus', focusLeave, true);
+				},
+			};
+		},
+		startNavigation: ({ indexCb, manualIndexCb } = {}) => {
+			const IndexNWaiting = derived(
+				[Index, Waiting],
+				([$Index, $Waiting]) => [$Index, $Waiting] as [number, boolean]
+			);
+
+			const ManualNWaiting = derived(
+				[ManualIndex, Waiting, Manual as Readable<boolean>],
+				([$Idx, $Wait, $Manual]) => [$Idx, $Wait, $Manual] as [number, boolean, boolean]
+			);
+
+			return useSubscribers(
+				IndexNWaiting.subscribe(([index, waiting]) => {
+					ManualIndex.set(index);
+					if (!waiting) {
+						if (indexCb) indexCb(index);
+						if (onChange) onChange(index);
+					}
+				}),
+				ManualNWaiting.subscribe(([index, waiting, isManual]) => {
+					// const active = get(Active);
+					// if (active && (!waiting || isManual)) active.focus();
+					if (!waiting && manualIndexCb) manualIndexCb(index);
+				}),
+				(Wait as Readable<boolean>).subscribe(Waiting.set)
+			);
+		},
+		listenActive: (callback) => {
+			let previous: HTMLElement;
+			return Active.subscribe((active) => {
+				callback(active, previous), (previous = active);
+			});
+		},
+		listenSelected: (callback) => {
+			let previous: HTMLElement | undefined;
+			return Selected.subscribe((selected) => {
+				if (selected && selected !== previous) callback(selected, previous);
+				previous = selected;
+			});
+		},
+		isSelected: (index, callback) => {
+			return derived([Waiting, Index], ([$Waiting, $Index]) => {
+				return !$Waiting && $Index === index;
+			}).subscribe(callback);
 		},
 		onDestroy: (callback) => {
 			callback({ Index, ManualIndex, Waiting, VerticalWaiting });
