@@ -1,4 +1,5 @@
 import type { Hashable } from '$lib/types';
+import { isNumberArray } from '$lib/utils/predicate';
 import { derived, writable } from 'svelte/store';
 
 export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
@@ -15,6 +16,18 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 		Values: derived(Mapped, ($Mapped) => {
 			return Array.from($Mapped.values());
 		}),
+		preRegister: (val) => {
+			let registeredIndex = 0;
+			Mapped.update((items) => {
+				registeredIndex = items.size;
+				const keys = Array.from(items.keys());
+
+				if (isNumberArray(keys)) return items.set(registeredIndex as unknown as K, val);
+				else throw new TypeError('Map Number Keys Expected');
+			});
+
+			return registeredIndex;
+		},
 		register: (key, value, onRegister) => {
 			let registeredIndex = 0;
 			Mapped.update((items) => {
@@ -47,6 +60,10 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 			return NewItem.subscribe((newItem) => {
 				if (newItem) callback(newItem);
 			});
+		},
+		listenItem: (index, callback) => {
+			const item = derived(Mapped, ($Mapped) => $Mapped.get(index));
+			return item.subscribe(callback);
 		},
 	};
 }
