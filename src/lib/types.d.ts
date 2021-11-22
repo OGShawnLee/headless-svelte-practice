@@ -31,38 +31,33 @@ export interface Hashable<K, V> extends Readable<Map<K, V>> {
 	Entries: Readable<[K, V][]>;
 	Keys: Readable<K[]>;
 	Values: Readable<V[]>;
+	preRegister: (val: V) => number;
 	register: (key: K, value: V, onRegister?: (key: K) => void) => number;
 	unregister: (key: K) => void;
 	update: (key: K, value: V) => void;
 	listenNewItem: (callback: (newItem: [K, V]) => void) => Unsubscriber;
+	listenItem: (key: K, cb: (item?: V) => void) => Unsubscriber;
 }
 
 export interface Navigable {
-	handlers: {
-		handleSelection: (index: number) => () => void;
-		handleKeyboard: (event: KeyboardEvent) => void;
-		handleKeyMatch: (event: KeyboardEvent) => void;
-		createManualBlurHandler: (node: HTMLElement) => {
-			handleManualBlur: (event: FocusEvent) => void;
-			removeInternal: EventListenerRemover;
-		};
+	handleSelection: (index: number) => () => void;
+	handleKeyboard: (event: KeyboardEvent) => void;
+	handleKeyMatch: (event: KeyboardEvent) => void;
+	useManualBlur: (node: HTMLElement) => {
+		handleManualBlur: (event: FocusEvent) => void;
+		removeInternal: EventListenerRemover;
 	};
-	watchers: {
-		watchNavigation: (callback?: {
-			indexCb?: (index: number) => void;
-			manualIndexCb?: (index: number) => void;
-		}) => Unsubscriber;
-		watchSelected: (
-			callback: (selected: HTMLElement, previous?: HTMLElement) => void
-		) => Unsubscriber;
-		watchActive: (
-			callback: (active: HTMLElement, previous?: HTMLElement) => void
-		) => Unsubscriber;
-		watchIsSelected: (
-			index: number,
-			callback: (isSelected: boolean) => void
-		) => Unsubscriber;
-	};
+	startNavigation: (callback?: {
+		indexCb?: (index: number) => void;
+		manualIndexCb?: (index: number) => void;
+	}) => Unsubscriber;
+	listenSelected: (
+		callback: (selected: HTMLElement, previous?: HTMLElement) => void
+	) => Unsubscriber;
+	listenActive: (
+		callback: (active: HTMLElement, previous?: HTMLElement) => void
+	) => Unsubscriber;
+	isSelected: (index: number, callback: (isSelected: boolean) => void) => Unsubscriber;
 	onDestroy: (
 		callback: (state: {
 			Index: Writable<number>;
