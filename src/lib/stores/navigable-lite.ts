@@ -69,6 +69,7 @@ export function navigableLite({ items, ...Optional }: Settings): NavigableLite {
 	return {
 		Index,
 		ManualIndex,
+		set: Index.set,
 		useNavigation(node, callback) {
 			const ARROWS = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
 			const Arrow = unstoppable('');

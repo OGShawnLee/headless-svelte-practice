@@ -80,6 +80,7 @@ export interface NavigableLite
 	> {
 	Index: Writable<number>;
 	ManualIndex: Writable<number>;
+	set: (index: number) => void;
 	useNavigation: (node: HTMLElement, callback?: (index: number) => void) => Unsubscriber;
 }
 
