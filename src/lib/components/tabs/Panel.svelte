@@ -1,27 +1,21 @@
 <script lang="ts">
-	import { getContext, onMount, onDestroy } from 'svelte';
+	import { getContext } from 'svelte';
 	import { isTabsContext, TABS_CONTEXT_KEY } from './Group.svelte';
-
-	const TabsContext = getContext(TABS_CONTEXT_KEY);
-	if (!isTabsContext(TabsContext)) throw Error('Invalid Tabs Context');
 
 	let className = '';
 	export { className as class };
 
-	const { Index, panel } = TabsContext;
+	const TabsContext = getContext(TABS_CONTEXT_KEY);
+	if (!isTabsContext(TabsContext)) throw Error('Invalid Tabs Context');
 
-	let registeredIndex: number = 0;
-	onMount(() => {
-		registeredIndex = panel.register();
-	});
+	const { Index, usePanel } = TabsContext;
+	const { register, panel } = usePanel;
 
-	onDestroy(() => {
-		panel.unregister(registeredIndex);
-	});
+	let index = register();
 </script>
 
-{#if $Index === registeredIndex}
-	<div class={className}>
-		<slot>{registeredIndex}</slot>
+{#if $Index === index}
+	<div class={className} use:panel={index}>
+		<slot />
 	</div>
 {/if}
