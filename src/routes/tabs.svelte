@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Tab, { TabList, TabPanel, TabGroup, TabPanels } from '$lib/components/tabs/';
+	import Tab, { TabList, TabPanel, TabGroup, TabPanels } from '$lib/components/tabs';
 
 	let numOTabs = 5;
 	$: tabs = [...Array(numOTabs).keys()];
@@ -9,7 +9,7 @@
 
 	let [showing, toggleShowing] = [true, () => (showing = !showing)];
 
-	let current = 4;
+	let index = 4;
 </script>
 
 <button class:active={manual} on:click={toggleManual}>Manual</button>
@@ -20,9 +20,9 @@
 <button on:click={toggleShowing}> Show </button>
 {#if showing}
 	<TabGroup {manual} {vertical}>
-		<TabList active="active" unactive="unactive">
+		<TabList>
 			{#each tabs as idx}
-				<Tab let:selected>Tab {idx} {selected}</Tab>
+				<Tab activeClass="active" let:selected>Tab {idx} {selected}</Tab>
 			{/each}
 		</TabList>
 		<TabPanels>
@@ -34,12 +34,12 @@
 {/if}
 
 <h2>Binding to Index Value</h2>
-{current}
-<input type="number" min="0" max="5" bind:value={current} />
-<TabGroup bind:current {manual} {vertical} onChange={console.log}>
-	<TabList active="active" unactive="unactive">
+{index}
+<input type="number" min="0" max="5" bind:value={index} />
+<TabGroup bind:index {manual} {vertical} onChange={console.log}>
+	<TabList>
 		{#each tabs as idx}
-			<Tab>Tab {idx}</Tab>
+			<Tab activeClass="active">Tab {idx}</Tab>
 		{/each}
 	</TabList>
 	<TabPanels>
