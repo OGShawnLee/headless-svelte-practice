@@ -25,6 +25,7 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 			Mapped.update((state) => {
 				const keys = Array.from(state.keys());
 				if (!isNumberArray(keys)) throw new TypeError('Number Keys Expected');
+				index = state.size;
 				return map.set(index as unknown as K, val);
 			});
 
