@@ -74,6 +74,7 @@
 			},
 			usePanel: {
 				register: () => Panels.preRegister(undefined),
+				unregister: Panels.unregister,
 				panel: (node: HTMLElement, index: number) => {
 					const [tabName, panelName] = [baptize('tab', index), baptize('panel', index)];
 					Panels.update(index, panelName);
@@ -84,7 +85,9 @@
 					node.setAttribute('aria-labelledby', tabName);
 					return {
 						destroy: () => {
-							Panels.unregister(index);
+							if (Panels.value.has(index)) {
+								Panels.modify(index, () => undefined);
+							}
 						},
 					};
 				},
