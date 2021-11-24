@@ -140,15 +140,18 @@ export interface SelectedStyles {
 }
 
 export interface Toggleable extends Readable<boolean> {
-	set: (val: boolean) => void;
+	set: Writable<boolean>['set'];
+	open: Function;
+	toggle: Function;
 	close: (ref?: HTMLElement | Event) => void;
-	defineElements: (elements: { button?: HTMLElement; panel?: HTMLElement }) => void;
-	open: () => void;
-	toggle: () => void;
-	useButton: (node: HTMLElement, ...openKeys: string[]) => EventListenerRemover;
+	defineButton: (node: HTMLElement) => void;
+	definePanel: (node: HTMLElement) => void;
+	Panel: Readable<HTMLElement | undefined>;
+	useButton: (node: HTMLElement) => EventListenerRemover;
 	usePanel: (settings: {
-		panelElement: HTMLElement;
-		listenersBuilders?: DefinedListenerBuilder[];
 		beforeClose?: (event?: Event) => void;
+		panelElement: HTMLElement;
+		listeners: DefinedListenerBuilder[];
 	}) => EventListenerRemover;
+	unregisterPanel: () => void;
 }
