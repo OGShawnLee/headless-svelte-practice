@@ -3,63 +3,59 @@
 		DisclosureButton,
 		DisclosurePanel,
 	} from '$lib/components/disclosure';
+	let ref: HTMLElement;
 
-	let [open, toggle] = [false, () => (open = !open)];
-	let specialElement: HTMLElement;
-
-	import { fade } from 'svelte/transition';
+	let show = false;
+	let destroy = () => (show = !show);
 </script>
 
-<button bind:this={specialElement}>I am special</button>
+<button bind:this={ref}>External</button>
 
-{open}
-<h2>Bound Disclosures</h2>
-<Disclosure bind:open let:close>
-	<DisclosureButton>Toggle</DisclosureButton>
+<Disclosure let:button let:panel let:open>
+	<button use:button> Toggle {open}</button>
+	<div slot="panel" use:panel>This is an amazing disclosure</div>
+</Disclosure>
+
+<Disclosure let:button let:panel let:open let:close>
+	<button use:button> Toggle {open}</button>
+	<div slot="panel" use:panel>
+		This is an amazing disclosure
+		<button on:click={close}>Close this</button>
+	</div>
+</Disclosure>
+
+<Disclosure let:button let:panel let:open let:close>
+	<button use:button> Toggle {open}</button>
+	<div slot="panel" use:panel>
+		This is an amazing disclosure
+		<button on:click={() => close(ref)}>Use Ref</button>
+	</div>
+</Disclosure>
+
+<Disclosure let:open let:close>
+	<DisclosureButton>Toggle {open}</DisclosureButton>
 	<DisclosurePanel>
-		<span> This is an amazing disclosure </span>
-		<button on:click={() => close(specialElement)}>Begone</button>
+		This is an amazing disclosure
+		<button on:click={() => close(ref)}>Use Ref</button>
 	</DisclosurePanel>
 </Disclosure>
 
-<Disclosure bind:open let:close>
-	<DisclosureButton>Toggle</DisclosureButton>
+<Disclosure open let:open let:close>
+	<DisclosureButton>Toggle {open}</DisclosureButton>
 	<DisclosurePanel>
-		<span> This is an amazing disclosure </span>
-		<button on:click={() => close(specialElement)}>Begone</button>
+		This is an amazing disclosure
+		<button on:click={() => close(ref)}>Use Ref</button>
 	</DisclosurePanel>
 </Disclosure>
 
-<Disclosure bind:open let:close>
-	<DisclosureButton>Toggle</DisclosureButton>
-	<DisclosurePanel>
-		<span> This is an amazing disclosure </span>
-		<button on:click={() => close(specialElement)}>Begone</button>
-	</DisclosurePanel>
-</Disclosure>
-
-<h2>Individual Disclosure</h2>
-<Disclosure let:close>
-	<DisclosureButton>Toggle</DisclosureButton>
-	<DisclosurePanel>
-		<span> This is an amazing disclosure </span>
-		<button on:click={() => close(specialElement)}>Begone</button>
-	</DisclosurePanel>
-</Disclosure>
-
-<h2>Custom div elements using Actions, and built-in transitions</h2>
-<Disclosure let:button let:panel>
-	<li use:button>Toggle</li>
-	<button slot="panel" use:panel transition:fade={{ duration: 150 }}>
-		This is another disclosure
-	</button>
-</Disclosure>
-
-{#if open}
-	<Disclosure let:button let:panel>
-		<li use:button>Toggle</li>
-		<button slot="panel" use:panel transition:fade={{ duration: 150 }}>
-			This is another disclosure
-		</button>
+<br />
+<button on:click={destroy}>Test Destroy and Mount</button>
+{#if show}
+	<Disclosure open let:open let:close>
+		<DisclosureButton>Toggle {open}</DisclosureButton>
+		<DisclosurePanel>
+			This is an amazing disclosure
+			<button on:click={() => close(ref)}>Use Ref</button>
+		</DisclosurePanel>
 	</Disclosure>
 {/if}

@@ -4,29 +4,26 @@
 		SwitchLabel,
 		SwitchDescription,
 	} from '$lib/components/switch/';
+
 	let [passive, togglePassive] = [false, () => (passive = !passive)];
+	let show = false;
+	let destroy = () => (show = !show);
 </script>
 
 <svelte:head>
 	<link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
 </svelte:head>
 
-<h1>Switch</h1>
-<h2>Individual Switch</h2>
-<p>Switch Label and Switch must be connected via aria-labelledby</p>
-<Switch let:checked class="switch" activeClass="switch--active">
-	<span class:translate-x-6={checked} class="switch__thumb transform translate-x-1" />
-	<SwitchLabel class="sr-only">Change App Theme</SwitchLabel>
-</Switch>
+<button on:click={destroy}>Test Destroy and Mount</button>
+{#if show}
+	<Switch let:checked class="switch" activeClass="switch--active">
+		<span class:translate-x-6={checked} class="switch__thumb transform translate-x-1" />
+		<SwitchLabel class="sr-only">Change App Theme</SwitchLabel>
+	</Switch>
+{/if}
 
-<h2>Group Switch</h2>
-<p>
-	For more flexible layouts use SwitchGroup. The Label and Description must have an unique
-	ID. Switch must be able to refer to multiple labels and descriptions as well. If a label
-	or description is destroyed, the Switch must stop refering to them. The checked value
-	must be accesible from the SwitchGroup so that it can be used throughout the component.
-	The label must react to passive prop.
-</p>
+<br />
+
 <button on:click={togglePassive} class:text-blue-500={passive}>Toggle Passive</button>
 <SwitchGroup let:checked>
 	<Switch class="switch" activeClass="switch--active">
