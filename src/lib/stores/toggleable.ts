@@ -23,11 +23,11 @@ export function toggleable(isOpen: boolean, notifier: Notifier<boolean>): Toggle
 	}
 
 	function handleTarget(target?: HTMLElement) {
-		if (handleBeforeClose) handleBeforeClose();
 		Open.set(false), target?.focus({ preventScroll: true });
 	}
 
 	function close(ref?: HTMLElement | Event) {
+		if (handleBeforeClose) handleBeforeClose();
 		if (!ref) return handleTarget(button);
 		if (isHTMLElement(ref)) return handleTarget(ref);
 
