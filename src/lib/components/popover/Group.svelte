@@ -1,115 +1,183 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
+	import { derived, Unsubscriber, writable, Writable } from 'svelte/store';
+	import { browser } from '$app/env';
+	import { useNamer, useSubscribers } from '$lib/utils';
+	import { isHTMLElement, propsIn } from '$lib/utils/predicate';
+	import { hashable } from '$lib/stores';
 
 	export const POPOVER_GROUP_CONTEXT_KEY = 'SVELTE-HEADLESS-POPOVER-GROUP';
 
-	function initPopoverGroup() {
-		const { value: popovers, values, ...hashAPI } = staticHash<number, Popover>();
+	function initPopoverGroup({ Expanded }: PopoverGroupSettings) {
+		const { Values, value, ...Popovers } = hashable<number, Popover>();
+		const EventTarget = writable<HTMLElement>();
+		let CurrentOpenPopover: Popover | undefined;
 
-		function getMembers() {
-			return values().flatMap(({ button, panel }) => {
-				if (panel) return [button, panel];
-				return button;
+		const Members = derived(Values, ($Values) => {
+			return $Values.flatMap(({ button, panel }) => {
+				return panel ? [button, panel] : button;
 			});
-		}
+		});
 
-		function isMember(target: HTMLElement) {
-			return getMembers().some((item) => {
-				return item === target || item.contains(target);
+		const IsMember = derived([EventTarget, Members], ([$Target, $Members]) => {
+			if (!document.contains($Target)) return 'SKIP';
+			return $Members.some((member) => {
+				return member === $Target || member.contains($Target);
 			});
+		});
+
+		const closeAll = () => value.forEach((item) => item.close());
+		function handleEscape({ key }: KeyboardEvent) {
+			if (key === 'Escape') closeAll();
 		}
 
-		function closeAll(e: Event) {
-			popovers.forEach((item) => item.close(e));
+		function handleClickOutside({ target }: MouseEvent) {
+			if (isHTMLElement(target)) EventTarget.set(target);
 		}
 
-		function handleClickOutside(event: MouseEvent) {
-			const target = event.target;
-			if (isHTMLElement(target) && !isMember(target)) closeAll(event);
-		}
-
-		function handleEscapeClose(event: KeyboardEvent) {
-			if (event.key === 'Escape') closeAll(event);
-		}
-
-		function handleFocusOut(event: FocusEvent) {
-			const target = event.target;
+		function handleFocusOut({ target }: FocusEvent) {
 			if (target === document.body) return;
-			if (isHTMLElement(target) && !isMember(target)) closeAll(event);
+			if (isHTMLElement(target)) EventTarget.set(target);
 		}
+
+		const TargetButton = writable<HTMLElement>();
+		function handleSmartClose(e: MouseEvent | KeyboardEvent) {
+			const target = e.target;
+			if (!isHTMLElement(target)) return;
+			if (e instanceof MouseEvent) return TargetButton.set(target);
+
+			const isButton = target.tagName === 'BUTTON';
+			if (!isButton && (e.key === 'Enter' || e.code === 'Space'))
+				TargetButton.set(target);
+		}
+		const MainLoop = derived(
+			[IsMember, Expanded, TargetButton],
+			([$IsMember, $Expanded, $Button]) =>
+				[$IsMember, $Expanded, $Button] as [boolean | 'SKIP', boolean, HTMLElement]
+		);
 
 		return {
-			useGroupButton: (Toggleable: Toggleable, id: number) => {
-				const { toggle, defineElements } = Toggleable;
+			usePopoverGroup() {
+				return useSubscribers(
+					MainLoop.subscribe(([isMember, expanded, targetButton]) => {
+						if (isMember === 'SKIP') return;
+						if (!isMember) return closeAll();
+						if (!expanded && CurrentOpenPopover) {
+							const { button, close } = CurrentOpenPopover;
+							if (targetButton !== button) close();
+						}
+					})
+				);
+			},
+			useGroupButton(Toggleable: Toggleable, id: number) {
 				const close = () => Toggleable.set(false);
+				const Panel = Toggleable.Panel;
+
+				const [baptize] = useNamer('popover', id);
+				const buttonName = baptize('button');
+				const panelName = baptize('panel');
 
 				return function (node: HTMLElement) {
-					defineElements({ button: node });
-					hashAPI.register(id, { button: node, panel: null, close });
+					node.addEventListener('click', handleSmartClose);
+					node.addEventListener('keydown', handleSmartClose);
 
-					node.addEventListener('click', toggle);
+					const DISPOSE_BUTTON = Toggleable.useButton(node);
+					Popovers.register(id, { button: node, close });
+
+					const STOP_SUBSCRIBERS = useSubscribers(
+						Toggleable.subscribe((isOpen) => {
+							CurrentOpenPopover = { button: node, close };
+							node.ariaExpanded = String(isOpen);
+						}),
+						Panel.subscribe((panel) => {
+							if (panel) {
+								panel.id = panelName;
+								node.setAttribute('aria-controls', panelName);
+							} else node.removeAttribute('aria-controls');
+						})
+					);
+
+					node.id = buttonName;
+					node.ariaHasPopup = 'true';
 					return {
-						destroy: () => {
-							hashAPI.unregister(id);
-							node.removeEventListener('click', toggle);
+						destroy() {
+							Popovers.unregister(id);
+							DISPOSE_BUTTON(), STOP_SUBSCRIBERS();
+							node.removeEventListener('click', handleSmartClose);
+							node.removeEventListener('keydown', handleSmartClose);
 						},
 					};
 				};
 			},
-			useGroupPanel: (Toggleable: Toggleable, id: number) => {
-				const { defineElements } = Toggleable;
+			useGroupPanel(Toggleable: Toggleable, id: number) {
 				return function (node: HTMLElement) {
-					defineElements({ panel: node });
-					hashAPI.updateItem(id, (item) => {
-						if (!item) throw new Error('Unable to Update Popover');
-						return { ...item, panel: node };
-					});
+					Toggleable.definePanel(node);
+					Popovers.modify(id, (item) => ({ ...item, panel: node }));
+					return {
+						destroy: () => Toggleable.unregisterPanel(),
+					};
 				};
 			},
-			addListeners: () => {
-				if (browser) {
-					window.addEventListener('click', handleClickOutside);
-					window.addEventListener('keydown', handleEscapeClose);
-					window.addEventListener('focusin', handleFocusOut, true);
-				}
+			useListeners() {
+				if (!browser) return;
+				window.addEventListener('click', handleClickOutside);
+				window.addEventListener('keydown', handleEscape);
+				window.addEventListener('focus', handleFocusOut, true);
 			},
-			removeListeners: () => {
-				if (browser) {
-					window.removeEventListener('click', handleClickOutside);
-					window.removeEventListener('keydown', handleEscapeClose);
-					window.removeEventListener('focusin', handleFocusOut, true);
-				}
+			removeListeners() {
+				if (!browser) return;
+				window.removeEventListener('click', handleClickOutside);
+				window.removeEventListener('keydown', handleEscape);
+				window.removeEventListener('focus', handleFocusOut, true);
 			},
 		};
 	}
 
-	export type PopoverGroupContext = ReturnType<typeof initPopoverGroup>;
-
 	export const isPopoverGroupContext = (val: unknown): val is PopoverGroupContext =>
-		propsIn(val, 'useGroupButton', 'useGroupPanel', 'addListeners', 'removeListeners');
+		propsIn(val, 'useGroupButton', 'useGroupPanel');
+
+	export type PopoverGroupContext = Pick<
+		ReturnType<typeof initPopoverGroup>,
+		'useGroupButton' | 'useGroupPanel'
+	>;
 
 	interface Popover {
 		button: HTMLElement;
-		panel: HTMLElement | null;
-		close: (ref?: HTMLElement | Event) => void;
+		panel?: HTMLElement;
+		close: () => void;
+	}
+
+	interface PopoverGroupSettings {
+		Expanded: Writable<boolean>;
 	}
 </script>
 
 <script lang="ts">
 	import { onDestroy, onMount, setContext } from 'svelte';
-	import { isHTMLElement, propsIn } from '$lib/utils/predicate';
-	import { staticHash } from '$lib/stores/staticHash';
-	import { browser } from '$app/env';
 
 	let className = '';
+
+	export let expanded = false;
 	export { className as class };
 
-	const PopoverGroup = initPopoverGroup();
+	const Expanded = writable(expanded);
 
-	onMount(() => PopoverGroup.addListeners());
-	onDestroy(() => PopoverGroup.removeListeners());
+	$: Expanded.set(expanded);
 
-	setContext(POPOVER_GROUP_CONTEXT_KEY, PopoverGroup);
+	const PopoverGroupState = initPopoverGroup({ Expanded });
+
+	let STOP_SUBSCRIBERS: Unsubscriber;
+	onMount(() => {
+		PopoverGroupState.useListeners();
+		STOP_SUBSCRIBERS = PopoverGroupState.usePopoverGroup();
+	});
+	onDestroy(() => {
+		PopoverGroupState.removeListeners();
+		if (STOP_SUBSCRIBERS) STOP_SUBSCRIBERS();
+	});
+
+	const { useGroupButton, useGroupPanel } = PopoverGroupState;
+	setContext(POPOVER_GROUP_CONTEXT_KEY, { useGroupButton, useGroupPanel });
 </script>
 
 <div class={className}>
