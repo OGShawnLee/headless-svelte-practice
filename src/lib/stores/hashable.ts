@@ -4,8 +4,12 @@ import { derived, writable } from 'svelte/store';
 
 export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 	const Mapped = writable(map);
-	const NewItem = writable<[K, V] | null>(null);
+	const NewItem = writable<[K, V] | undefined>();
 	return {
+		value: map,
+		entries: () => Array.from(map.entries()),
+		keys: () => Array.from(map.keys()),
+		values: () => Array.from(map.values()),
 		subscribe: Mapped.subscribe,
 		Entries: derived(Mapped, ($Mapped) => {
 			return Array.from($Mapped.entries());
@@ -16,54 +20,58 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 		Values: derived(Mapped, ($Mapped) => {
 			return Array.from($Mapped.values());
 		}),
-		preRegister: (val) => {
-			let registeredIndex = 0;
-			Mapped.update((items) => {
-				registeredIndex = items.size;
-				const keys = Array.from(items.keys());
-
-				if (isNumberArray(keys)) return items.set(registeredIndex as unknown as K, val);
-				else throw new TypeError('Map Number Keys Expected');
+		preRegister(val: V) {
+			let index = 0;
+			Mapped.update((state) => {
+				const keys = Array.from(state.keys());
+				if (!isNumberArray(keys)) throw new TypeError('Number Keys Expected');
+				return map.set(index as unknown as K, val);
 			});
 
-			return registeredIndex;
+			return index;
 		},
-		register: (key, value, onRegister) => {
-			let registeredIndex = 0;
-			Mapped.update((items) => {
-				const duplicateKey = items.has(key);
-				if (duplicateKey) throw Error('Duplicate Key');
+		register(key: K, value: V, onRegister?: (key: K) => void) {
+			let index = 0;
+			Mapped.update((state) => {
+				const duplicate = state.has(key);
+				if (duplicate) throw new Error('Duplicate Key Detected');
+				index = state.size;
 
-				const duplicateValue = Array.from(items.values()).includes(value);
-				if (duplicateValue) throw new Error('Duplicate Value');
-
-				NewItem.set([key, value]);
 				if (onRegister) onRegister(key);
-				return (registeredIndex = items.size), items.set(key, value);
+				return NewItem.set([key, value]), map.set(key, value);
 			});
 
-			return registeredIndex;
+			return index;
 		},
-		unregister: (key) => {
-			Mapped.update((items) => {
-				const deleted = items.delete(key);
-				if (deleted) return items;
-				else throw Error('Unable To Delete Item');
+		unregister(key: K) {
+			Mapped.update((state) => {
+				const exists = state.has(key);
+				if (!exists) throw new Error('Item To Delete Not Found');
+				map.delete(key), state.delete(key);
+				return state;
 			});
 		},
-		update: (key, value) => {
-			Mapped.update((items) => {
-				return items.set(key, value);
+		update(key: K, value: V) {
+			Mapped.update((state) => {
+				const exists = state.has(key);
+				if (!exists) throw new Error('Item to Update Not Found');
+				return map.set(key, value);
 			});
 		},
-		listenNewItem: (callback) => {
-			return NewItem.subscribe((newItem) => {
-				if (newItem) callback(newItem);
+		modify(key: K, callback: (value: V) => V) {
+			Mapped.update((state) => {
+				const item = state.get(key);
+				if (!item) throw new Error('Item to Modify Not Found');
+				return map.set(key, callback(item));
 			});
 		},
-		listenItem: (index, callback) => {
-			const item = derived(Mapped, ($Mapped) => $Mapped.get(index));
-			return item.subscribe(callback);
+		listenItem(key: K, callback: (item?: V) => void) {
+			return Mapped.subscribe((state) => {
+				callback(state.get(key));
+			});
+		},
+		listenNewItem(callback: (item?: [K, V]) => void) {
+			return NewItem.subscribe(callback);
 		},
 	};
 }
