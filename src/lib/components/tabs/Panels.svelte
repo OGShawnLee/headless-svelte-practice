@@ -3,6 +3,6 @@
 	export { className as class };
 </script>
 
-<div class={className} tabindex="0">
+<div class={className}>
 	<slot />
 </div>
