@@ -82,12 +82,14 @@ export interface Notifiable<T> extends Writable<T> {
 export type Notifier<T> = (val: T) => T;
 
 export interface Registrable<T> extends Readable<T[]> {
-	register: (val?: T, onRegister?: (val: T) => void) => number;
-	unregister: (val: T) => void;
+	value: T[];
+	NewItem: Readable<T | undefined>;
+	emptyRegister: () => number;
+	register: (val: T, onRegister?: (val: T) => void) => number;
+	unregister: (val: T, index?: number) => void;
+	exists: (val: T) => boolean;
 	useItems: (callback: (item: T) => void) => void;
-	watchers: {
-		watchNewItem: (callback: (newItem: T) => void) => Unsubscriber;
-	};
+	listenNewItem: (callback: (newItem: T) => void) => Unsubscriber;
 }
 
 export interface Selectable<T> extends Readable<T> {
