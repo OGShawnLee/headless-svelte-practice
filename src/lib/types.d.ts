@@ -18,9 +18,6 @@ export type EventListenerRemover = () => void;
 
 export interface Hashable<K, V> extends Readable<Map<K, V>> {
 	value: Map<K, V>;
-	values: () => V[];
-	keys: () => K[];
-	entries: () => [K, V][];
 	Entries: Readable<[K, V][]>;
 	Keys: Readable<K[]>;
 	Values: Readable<V[]>;

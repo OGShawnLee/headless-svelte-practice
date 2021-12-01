@@ -7,9 +7,6 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 	const NewItem = writable<[K, V] | undefined>();
 	return {
 		value: map,
-		entries: () => Array.from(map.entries()),
-		keys: () => Array.from(map.keys()),
-		values: () => Array.from(map.values()),
 		subscribe: Mapped.subscribe,
 		Entries: derived(Mapped, ($Mapped) => {
 			return Array.from($Mapped.entries());
