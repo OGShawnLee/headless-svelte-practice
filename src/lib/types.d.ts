@@ -22,12 +22,12 @@ export interface Hashable<K, V> extends Readable<Map<K, V>> {
 	Keys: Readable<K[]>;
 	Values: Readable<V[]>;
 	preRegister: (val: V) => number;
-	register: (key: K, value: V, onRegister?: (key: K) => void) => number;
+	register: (key: K, value: V, onRegister?: (key: K, val: V) => void) => number;
 	unregister: (key: K) => void;
 	update: (key: K, value: V) => void;
 	modify: (key: K, callback: (val: V) => V) => void;
-	listenNewItem: (callback: (newItem?: [K, V]) => void) => Unsubscriber;
-	listenItem: (key: K, cb: (item?: V) => void) => Unsubscriber;
+	listenItem: (key: K, callback: (item?: V) => void) => Unsubscriber;
+	listenNewItem: (callback: (newItem: [K, V]) => void) => Unsubscriber;
 }
 
 export interface Navigable {

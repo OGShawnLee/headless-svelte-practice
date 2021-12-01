@@ -28,14 +28,14 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 
 			return index;
 		},
-		register(key: K, value: V, onRegister?: (key: K) => void) {
+		register(key: K, value: V, onRegister?: (key: K, val: V) => void) {
 			let index = 0;
 			Mapped.update((state) => {
 				const duplicate = state.has(key);
 				if (duplicate) throw new Error('Duplicate Key Detected');
 				index = state.size;
 
-				if (onRegister) onRegister(key);
+				if (onRegister) onRegister(key, value);
 				return NewItem.set([key, value]), map.set(key, value);
 			});
 
@@ -68,8 +68,10 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 				callback(state.get(key));
 			});
 		},
-		listenNewItem(callback: (item?: [K, V]) => void) {
-			return NewItem.subscribe(callback);
+		listenNewItem(callback: (item: [K, V]) => void) {
+			return NewItem.subscribe((item) => {
+				if (item) callback(item);
+			});
 		},
 	};
 }
