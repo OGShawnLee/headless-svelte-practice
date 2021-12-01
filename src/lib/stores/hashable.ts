@@ -17,7 +17,7 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 		Values: derived(Mapped, ($Mapped) => {
 			return Array.from($Mapped.values());
 		}),
-		preRegister(val: V) {
+		preRegister(val) {
 			let index = 0;
 			Mapped.update((state) => {
 				const keys = Array.from(state.keys());
@@ -28,7 +28,7 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 
 			return index;
 		},
-		register(key: K, value: V, onRegister?: (key: K, val: V) => void) {
+		register(key, value, onRegister) {
 			let index = 0;
 			Mapped.update((state) => {
 				const duplicate = state.has(key);
@@ -41,7 +41,7 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 
 			return index;
 		},
-		unregister(key: K) {
+		unregister(key) {
 			Mapped.update((state) => {
 				const exists = state.has(key);
 				if (!exists) throw new Error('Item To Delete Not Found');
@@ -49,26 +49,26 @@ export function hashable<K, V>(map = new Map<K, V>()): Hashable<K, V> {
 				return state;
 			});
 		},
-		update(key: K, value: V) {
+		update(key, value) {
 			Mapped.update((state) => {
 				const exists = state.has(key);
 				if (!exists) throw new Error('Item to Update Not Found');
 				return map.set(key, value);
 			});
 		},
-		modify(key: K, callback: (value: V) => V) {
+		modify(key, callback) {
 			Mapped.update((state) => {
 				const item = state.get(key);
 				if (!item) throw new Error('Item to Modify Not Found');
 				return map.set(key, callback(item));
 			});
 		},
-		listenItem(key: K, callback: (item?: V) => void) {
+		listenItem(key, callback) {
 			return Mapped.subscribe((state) => {
 				callback(state.get(key));
 			});
 		},
-		listenNewItem(callback: (item: [K, V]) => void) {
+		listenNewItem(callback) {
 			return NewItem.subscribe((item) => {
 				if (item) callback(item);
 			});
