@@ -5,3 +5,7 @@ export function hideScrollbar() {
 		document.body.style.overflow = originalOverflow;
 	};
 }
+
+export function isWithin(node?: HTMLElement, target?: HTMLElement) {
+	return node?.contains(target || document.activeElement);
+}
