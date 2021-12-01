@@ -14,17 +14,6 @@ export interface Component {
 	disappear: () => void;
 }
 
-type DefinedListenerBuilder = (
-	callback: (event: Event) => void,
-	node: HTMLElement
-) => DefinedListener;
-
-interface DefinedListener<E extends Event> {
-	type: string;
-	func: (event: E) => void;
-	bubble?: boolean;
-}
-
 export type EventListenerRemover = () => void;
 
 export interface Hashable<K, V> extends Readable<Map<K, V>> {
