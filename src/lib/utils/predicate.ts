@@ -23,3 +23,5 @@ export function isNumberArray(val: unknown): val is number[] {
 export function isArray(val: unknown): val is Array<unknown> {
 	return val instanceof Array;
 }
+
+export const isFunction = (val: unknown): val is Function => typeof val === 'function';
