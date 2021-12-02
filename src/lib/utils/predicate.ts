@@ -25,3 +25,6 @@ export function isArray(val: unknown): val is Array<unknown> {
 }
 
 export const isFunction = (val: unknown): val is Function => typeof val === 'function';
+
+export const isStringArray = (val: unknown): val is string[] =>
+	isArray(val) && val.every((item) => typeof item === 'string');
