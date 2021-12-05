@@ -168,19 +168,26 @@ export interface SelectedStyles {
 	else?: string;
 }
 
-export interface Toggleable extends Readable<boolean> {
+export interface Toggleable extends ToggleableMethods, Readable<boolean> {
 	set: Writable<boolean>['set'];
-	open: Function;
-	toggle: Function;
-	close: (ref?: HTMLElement | Event) => void;
-	defineButton: (node: HTMLElement) => void;
-	definePanel: (node: HTMLElement) => void;
+	Button: Readable<HTMLElement | undefined>;
 	Panel: Readable<HTMLElement | undefined>;
-	useButton: (node: HTMLElement) => EventListenerRemover;
-	usePanel: (settings: {
-		beforeClose?: (event?: Event) => void;
-		panelElement: HTMLElement;
-		listeners: DefinedListenerBuilder[];
-	}) => EventListenerRemover;
+	Methods: ToggleableMethods;
+	defineButton: (node: HTMLElement, id?: string) => void;
+	useButton: (
+		node: HTMLElement,
+		Settings?: {
+			useDefaultKeys?: boolean;
+			keysReducer?: (event: KeyboardEvent, Methods: ToggleableMethods) => void;
+		}
+	) => EventListenerRemover;
+	definePanel: (node: HTMLElement, id?: string) => void;
+	usePanel: (
+		node: HTMLElement,
+		Settings?: {
+			beforeClose?: Function;
+			listeners?: ('FOCUS_LEAVE' | 'ESCAPE_KEY' | 'CLICK_OUTSIDE')[];
+		}
+	) => EventListenerRemover;
 	unregisterPanel: () => void;
 }
