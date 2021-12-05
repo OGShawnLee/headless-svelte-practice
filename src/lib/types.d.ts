@@ -38,33 +38,23 @@ export type Keys =
 	| 'Enter'
 	| 'Space';
 
-export interface Navigable {
-	handleSelection: (index: number) => () => void;
-	handleKeyboard: (event: KeyboardEvent) => void;
-	handleKeyMatch: (event: KeyboardEvent) => void;
-	useManualBlur: (node: HTMLElement) => {
-		handleManualBlur: (event: FocusEvent) => void;
-		removeInternal: EventListenerRemover;
-	};
-	startNavigation: (callback?: {
-		indexCb?: (index: number) => void;
-		manualIndexCb?: (index: number) => void;
-	}) => Unsubscriber;
+interface Navigable extends NavigableStores, NavigableMethods {
+	subscribe: Readable<number>['subscribe'];
+	Data: NavigableData;
+	Stores: NavigableStores;
+	Methods: NavigableMethods;
+	handleSelection: (index: number) => (event: MouseEvent | KeyboardEvent) => void;
+	useDynamicOpen: (
+		node: HTMLElement,
+		startWithFunction: (Data: NavigableData) => 'FIRST' | 'LAST' | 'AUTO' | number
+	) => Promise<void>;
+	useNavigation: (node: HTMLElement) => EventListenerRemover;
+	usePlugins: (node: HTMLElement, ...pluginFn: NavigablePluginFunction[]) => Unsubscriber;
 	listenSelected: (
 		callback: (selected: HTMLElement, previous?: HTMLElement) => void
 	) => Unsubscriber;
-	listenActive: (
-		callback: (active: HTMLElement, previous?: HTMLElement) => void
-	) => Unsubscriber;
 	isSelected: (index: number, callback: (isSelected: boolean) => void) => Unsubscriber;
-	onDestroy: (
-		callback: (state: {
-			Index: Writable<number>;
-			ManualIndex: Writable<number>;
-			Waiting: Writable<boolean>;
-			VerticalWaiting: Writable<boolean>;
-		}) => void
-	) => void;
+	onDestroy: (cb: (Stores: NavigableStores) => void) => void;
 }
 
 export interface NavigableLite
