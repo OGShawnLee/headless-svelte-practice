@@ -191,3 +191,9 @@ export interface Toggleable extends ToggleableMethods, Readable<boolean> {
 	) => EventListenerRemover;
 	unregisterPanel: () => void;
 }
+
+interface ToggleableMethods {
+	open: Function;
+	toggle: (event: Event) => void;
+	close: (ref?: Event | HTMLElement) => void;
+}
