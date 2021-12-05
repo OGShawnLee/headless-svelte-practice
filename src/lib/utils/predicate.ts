@@ -1,3 +1,5 @@
+import type { Readable } from 'svelte/store';
+
 export function propsIn(val: unknown, ...properties: string[]) {
 	if (!isObject(val)) return false;
 	return properties.every((prop) => prop in val);
@@ -28,3 +30,5 @@ export const isFunction = (val: unknown): val is Function => typeof val === 'fun
 
 export const isStringArray = (val: unknown): val is string[] =>
 	isArray(val) && val.every((item) => typeof item === 'string');
+
+export const isStore = <T>(val: unknown): val is Readable<T> => propsIn(val, 'subscribe');
