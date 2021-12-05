@@ -57,6 +57,49 @@ interface Navigable extends NavigableStores, NavigableMethods {
 	onDestroy: (cb: (Stores: NavigableStores) => void) => void;
 }
 
+interface NavigableData {
+	items: HTMLElement[];
+	isVertical: boolean;
+	isManual: boolean;
+	isWaiting: boolean;
+	selectedItem?: HTMLElement;
+	TargetIndex: Writable<number>;
+}
+
+interface NavigableMethods {
+	set: (index: number) => void;
+	interact: (action: number | ((index: number) => number), setWaiting?: boolean) => void;
+	navigate: (
+		direction: 'ASCENDING' | 'DESCENDING',
+		cb: (index: number, isOverflowed: boolean) => number
+	) => void;
+	goNext: (ctrlKey: boolean) => void;
+	goBack: (ctrlKey: boolean) => void;
+	useFirst: () => void;
+	useLast: () => void;
+	useSelected: () => void;
+}
+
+interface NavigableStores {
+	Items: Readable<HTMLElement[]> | HTMLElement[];
+	Index: Writable<number>;
+	ManualIndex: Writable<number>;
+	SelectedItem: Readable<HTMLElement | undefined>;
+	Manual: Readable<boolean>;
+	Vertical: Readable<boolean>;
+	Wait: Readable<boolean>;
+	Waiting: Writable<boolean>;
+}
+
+type NavigablePluginFunction = (
+	node: HTMLElement,
+	NavigableAPI: {
+		Data: NavigableData;
+		Methods: NavigableMethods;
+		Stores: NavigableStores;
+	}
+) => EventListenerRemover;
+
 export interface NavigableLite
 	extends Omit<
 		Navigable,
