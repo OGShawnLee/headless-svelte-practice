@@ -1,232 +1,238 @@
+import type { Keys, Navigable, NavigableData, NavigableMethods } from '$lib/types';
 import type { Readable, Writable } from 'svelte/store';
-import type { Navigable, NavigableLite, Notifiable } from '$lib/types';
-import { derived, get, readable, writable } from 'svelte/store';
-import { isBoolean, isHTMLElement } from '$lib/utils/predicate';
-import { useSubscribers } from '$lib/utils';
+import { toStore, useSubscribers, isNotValidKey } from '$lib/utils';
+import { isOverflowed } from '$lib/utils/dom-management';
+import { derived, writable } from 'svelte/store';
+import { isArray } from '$lib/utils/predicate';
+import { tick } from 'svelte';
+
+interface NavigableSettings {
+	Items: Readable<HTMLElement[]> | HTMLElement[];
+	Index?: Writable<number> | number;
+	Manual?: Readable<boolean> | boolean;
+	Vertical?: Readable<boolean> | boolean;
+	Wait?: Readable<boolean> | boolean;
+}
 
 export function navigable({ Items, ...Optional }: NavigableSettings): Navigable {
-	let {
-		Index = writable(0),
-		Manual = readable(false),
-		Vertical = readable(false),
-		Wait = readable(false),
-		VerticalWait = readable(false),
-		onChange = () => void 0,
-	} = Optional;
+	const CoreStores = {
+		Index: toStore(Optional.Index, 0, writable) as Writable<number>,
+		Manual: toStore(Optional.Manual, false),
+		Vertical: toStore(Optional.Vertical, false),
+		Wait: toStore(Optional.Wait, false),
+	};
 
-	if (isBoolean(Manual)) Manual = readable(Manual);
-	if (isBoolean(Vertical)) Vertical = readable(Vertical);
-	if (isBoolean(Wait)) Wait = readable(Wait);
-	if (isBoolean(VerticalWait)) VerticalWait = readable(VerticalWait);
+	const { Index, Manual, Vertical, Wait } = CoreStores;
 
-	const ManualIndex = writable(get(Index));
-	const Waiting = writable(get(Wait));
-	const VerticalWaiting = writable(get(VerticalWait));
-	const Selected = derived([Items, Index, Waiting], ([$Items, $Index, $Waiting]) => {
-		return $Waiting ? undefined : $Items[$Index];
-	});
-	const Active = derived([Items, ManualIndex], ([$Items, $ManualIndex]) => {
-		return $Items[$ManualIndex];
-	});
+	const Data: NavigableData = {
+		items: isArray(Items) ? Items : [],
+		isVertical: false,
+		isManual: false,
+		isWaiting: false,
+		selectedItem: undefined,
+		TargetIndex: Index,
+	};
 
-	function isOverflowed(
-		index: number,
-		direction: 'ASCENDING' | 'DESCENDING',
-		length: number
-	) {
-		if (direction === 'ASCENDING') return index + 1 === length;
-		if (direction === 'DESCENDING') return index - 1 === -1;
-		throw new Error('Invalid Direction');
+	const ManualIndex = writable(0);
+	const TargetIndex = derived(Manual, ($Manual) => ($Manual ? ManualIndex : Index));
+	const Waiting = writable(true);
+	const SelectedItem = isArray(Items)
+		? derived([Index, Waiting], ([$Index, $Waiting]) => {
+				return $Waiting ? undefined : Data.items[$Index];
+		  })
+		: derived([Index, Waiting, Items], ([$Index, $Waiting, $Items]) => {
+				return $Waiting ? undefined : $Items[$Index];
+		  });
+
+	const Stores = { ...CoreStores, Items, ManualIndex, SelectedItem, Waiting };
+
+	function listenStores() {
+		const ItemsSubscriber = Items instanceof Array ? undefined : Items;
+		return useSubscribers(
+			Index.subscribe(ManualIndex.set),
+			TargetIndex.subscribe((TargetIndex) => {
+				Data.TargetIndex = TargetIndex;
+			}),
+			ItemsSubscriber?.subscribe((items) => {
+				Data.items = items;
+			}),
+			SelectedItem.subscribe((item) => {
+				Data.selectedItem = item;
+			}),
+			Vertical.subscribe((isVertical) => {
+				Data.isVertical = isVertical;
+			}),
+			Manual.subscribe((isManual) => {
+				Data.isManual = isManual;
+			}),
+			Wait.subscribe(Waiting.set),
+			Waiting.subscribe((isWaiting) => {
+				Data.isWaiting = isWaiting;
+			})
+		);
 	}
 
-	function getTargetIndex() {
-		return get(Manual as Readable<boolean>) ? ManualIndex : Index;
-	}
-
-	function navigate(direction: 'ASCENDING' | 'DESCENDING') {
-		const TargetIndex = getTargetIndex();
-		return function (
-			callback: (state: {
-				index: number;
-				isOverflowed: boolean;
-				isWaiting: boolean;
-				isWaitingVertical: boolean;
-			}) => number
-		) {
+	const Methods: NavigableMethods = {
+		set(index) {
+			Index.set(index);
+			Data.items[index].focus();
+			Waiting.set(false);
+		},
+		interact(action, setWaiting = false) {
+			const { TargetIndex, items, isManual } = Data;
 			TargetIndex.update((index) => {
-				const length = get(Items).length;
-				const isWaiting = get(Waiting);
-				const isWaitingVertical = get(VerticalWaiting);
-				return callback({
-					index,
-					isOverflowed: isOverflowed(index, direction, length),
-					isWaiting,
-					isWaitingVertical,
-				});
+				const newIndex = typeof action === 'number' ? action : action(index);
+				return items[newIndex].focus(), newIndex;
 			});
 
-			if (TargetIndex !== ManualIndex) Waiting.set(false);
-			get(Active)?.focus();
-		};
-	}
-
-	function goFirst() {
-		return 0;
-	}
-
-	function goLast() {
-		return get(Items).length - 1;
-	}
-
-	function goPrev(ctrlKey: boolean) {
-		navigate('DESCENDING')(({ index, isOverflowed, isWaiting, isWaitingVertical }) => {
-			// ? hard to explain but fixes a listbox bug #index-out-of-sync
-			if (!isWaiting && isWaitingVertical) return VerticalWaiting.set(false), index;
-
-			if (ctrlKey) return goFirst();
-			if (isWaiting && isWaitingVertical) return VerticalWaiting.set(false), goLast();
-
-			return isOverflowed ? goLast() : index - 1;
-		});
-	}
-
-	function goNext(ctrlKey: boolean) {
-		navigate('ASCENDING')(({ index, isOverflowed, isWaiting, isWaitingVertical }) => {
-			// ? same here, i had enough of this store so no refactor coming soon
-			if (!isWaiting && isWaitingVertical) return VerticalWaiting.set(false), index;
-
-			if (ctrlKey) return goLast();
-			if (isWaiting && isWaitingVertical) return VerticalWaiting.set(false), goFirst();
-
-			return isOverflowed ? goFirst() : index + 1;
-		});
-	}
+			if (!isManual || setWaiting) Waiting.set(false);
+		},
+		navigate(direction, cb) {
+			Methods.interact((index) => cb(index, isOverflowed(index, direction, Data.items)));
+		},
+		goNext(ctrlKey) {
+			Methods.navigate('ASCENDING', (index, isOverflowed) => {
+				if (ctrlKey) return Data.items.length - 1;
+				return isOverflowed ? 0 : index + 1;
+			});
+		},
+		goBack(ctrlKey) {
+			Methods.navigate('DESCENDING', (index, isOverflowed) => {
+				if (ctrlKey) return 0;
+				return isOverflowed ? Data.items.length - 1 : index - 1;
+			});
+		},
+		useLast() {
+			Methods.interact(Data.items.length - 1);
+		},
+		useFirst() {
+			Methods.interact(0);
+		},
+		useSelected() {
+			Data.selectedItem?.focus();
+		},
+	};
 
 	return {
-		handleKeyboard: (event) => {
-			const { key, ctrlKey } = event;
-			const isVertical = get(Vertical as Readable<boolean>);
-			const cases = {
-				vertical: {
-					ArrowUp: goPrev,
-					ArrowDown: goNext,
-				},
-				horizontal: {
-					ArrowRight: goNext,
-					ArrowLeft: goPrev,
-				},
-			};
+		subscribe: Index.subscribe,
+		Data,
+		...Stores,
+		Stores,
+		...Methods,
+		Methods,
+		handleSelection(index) {
+			return function (event) {
+				if (event instanceof MouseEvent) Methods.set(index);
 
-			// @ts-ignore
-			const action = cases[isVertical ? 'vertical' : 'horizontal'][key];
-			if (action && typeof action === 'function') {
-				event.preventDefault(), action(ctrlKey);
-			}
-		},
-		handleSelection: (index) => {
-			return function () {
-				Index.set(index), ManualIndex.set(index);
-				Waiting.set(false), VerticalWaiting.set(false);
+				if (event instanceof KeyboardEvent) {
+					const { code } = event;
+					if (['Enter', 'Space'].includes(code)) Methods.set(index);
+				}
 			};
 		},
-		handleKeyMatch: ({ key }) => {
-			get(Items).some((item, index) => {
-				const lower = item.innerText.toLowerCase();
-				if (lower.startsWith(key.toLowerCase())) {
-					Index.set(index), ManualIndex.set(index);
-					Waiting.set(false), VerticalWaiting.set(false);
-				}
-			});
+		async useDynamicOpen(node, startWithFunction) {
+			await tick();
+			const startWith = startWithFunction(Data);
+			switch (startWith) {
+				case 'FIRST':
+					return Methods.useFirst();
+				case 'LAST':
+					return Methods.useLast();
+				case 'AUTO':
+					if (Data.isWaiting) return node.focus();
+					return Methods.useSelected();
+				default:
+					const isInRange = (index: number, min: number, max: number) =>
+						index >= min && index < max;
+
+					if (isInRange(startWith, 0, Data.items.length)) Methods.set(startWith);
+					else console.warn('Index out of Range'), node.focus();
+			}
 		},
-		useManualBlur: (node) => {
-			let added = false;
-			const isFocusOnSelected = (target: HTMLElement) => get(Selected) === target;
-			function handleFocusLeave(target: HTMLElement) {
-				ManualIndex.set(get(Index)), target.focus();
-				if (added) {
-					window.removeEventListener('focus', focusLeave, true);
-					added = true;
-				}
+		useNavigation(node) {
+			const { goBack, goNext, useFirst, useLast, useSelected } = Methods;
+
+			let isParentFocused = false;
+			function handleParentFocus() {
+				isParentFocused = true;
 			}
 
-			function focusLeave({ target }: FocusEvent) {
-				if (!isHTMLElement(target)) return;
-				if (isFocusOnSelected(target)) {
-					const index = get(Index);
-					return ManualIndex.set(index);
-				}
-
-				if (node.contains(target)) return;
-				handleFocusLeave(target);
+			function handleChildrenFocus(event: FocusEvent) {
+				if (event.target !== node) isParentFocused = false;
 			}
 
-			return {
-				handleManualBlur: () => {
-					window.addEventListener('focus', focusLeave, true);
-					added = true;
-				},
-				removeInternal: () => {
-					window.removeEventListener('focus', focusLeave, true);
-				},
-			};
-		},
-		startNavigation: ({ indexCb, manualIndexCb } = {}) => {
-			const IndexNWaiting = derived(
-				[Index, Waiting],
-				([$Index, $Waiting]) => [$Index, $Waiting] as [number, boolean]
-			);
+			function handleNavigation(event: KeyboardEvent) {
+				const { code, ctrlKey } = event;
+				if (isNotValidKey(code)) return;
+				const { isVertical, isWaiting } = Data;
 
-			const ManualNWaiting = derived(
-				[ManualIndex, Waiting, Manual as Readable<boolean>],
-				([$Idx, $Wait, $Manual]) => [$Idx, $Wait, $Manual] as [number, boolean, boolean]
-			);
+				switch (code) {
+					case 'Space':
+					case 'Enter':
+						if (isParentFocused) {
+							event.preventDefault();
+							isWaiting ? useFirst() : useSelected();
+						}
+				}
 
-			return useSubscribers(
-				IndexNWaiting.subscribe(([index, waiting]) => {
-					ManualIndex.set(index);
-					if (!waiting) {
-						if (indexCb) indexCb(index);
-						if (onChange) onChange(index);
+				if (isVertical)
+					switch (code as Keys) {
+						case 'ArrowUp':
+							event.preventDefault();
+							if (isParentFocused) return isWaiting ? useLast() : useSelected();
+
+							return goBack(ctrlKey);
+						case 'ArrowDown':
+							event.preventDefault();
+							if (isParentFocused) return isWaiting ? useFirst() : useSelected();
+
+							return goNext(ctrlKey);
 					}
-				}),
-				ManualNWaiting.subscribe(([index, waiting, isManual]) => {
-					// const active = get(Active);
-					// if (active && (!waiting || isManual)) active.focus();
-					if (!waiting && manualIndexCb) manualIndexCb(index);
-				}),
-				(Wait as Readable<boolean>).subscribe(Waiting.set)
+				else
+					switch (code as Keys) {
+						case 'ArrowLeft':
+							event.preventDefault();
+							if (isParentFocused) return isWaiting ? useLast() : useSelected();
+
+							return goBack(ctrlKey);
+						case 'ArrowRight':
+							event.preventDefault();
+							if (isParentFocused) return isWaiting ? useFirst() : useSelected();
+
+							return goNext(ctrlKey);
+					}
+			}
+
+			const STOP_SUBSCRIBERS = listenStores();
+
+			node.addEventListener('keydown', handleNavigation);
+			node.addEventListener('focus', handleParentFocus);
+			node.addEventListener('focusin', handleChildrenFocus);
+			return function () {
+				STOP_SUBSCRIBERS();
+				isParentFocused = false;
+				node.removeEventListener('keydown', handleNavigation);
+				node.removeEventListener('focus', handleParentFocus);
+				node.removeEventListener('focusin', handleChildrenFocus);
+			};
+		},
+		usePlugins(node, ...pluginFn) {
+			return useSubscribers(
+				...pluginFn.map((plugin) => plugin(node, { Stores, Data, Methods }))
 			);
 		},
-		listenActive: (callback) => {
-			let previous: HTMLElement;
-			return Active.subscribe((active) => {
-				callback(active, previous), (previous = active);
-			});
-		},
-		listenSelected: (callback) => {
+		listenSelected(callback) {
 			let previous: HTMLElement | undefined;
-			return Selected.subscribe((selected) => {
+			return SelectedItem.subscribe((selected) => {
 				if (selected && selected !== previous) callback(selected, previous);
 				previous = selected;
 			});
 		},
-		isSelected: (index, callback) => {
-			return derived([Waiting, Index], ([$Waiting, $Index]) => {
-				return !$Waiting && $Index === index;
-			}).subscribe(callback);
+		isSelected(index, callback) {
+			return Index.subscribe((idx) => callback(index === idx));
 		},
-		onDestroy: (callback) => {
-			callback({ Index, ManualIndex, Waiting, VerticalWaiting });
+		onDestroy(callback) {
+			callback(Stores);
 		},
 	};
-}
-
-interface NavigableSettings {
-	Items: Readable<HTMLElement[]>;
-	Index?: Notifiable<number> | Writable<number>;
-	Manual?: Readable<boolean> | boolean;
-	Vertical?: Readable<boolean> | boolean;
-	Wait?: Readable<boolean> | boolean;
-	VerticalWait?: Readable<boolean> | boolean;
-	onChange?: (index: number) => void;
 }
