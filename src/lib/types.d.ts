@@ -102,22 +102,6 @@ type NavigablePluginFunction = (
 	}
 ) => EventListenerRemover;
 
-export interface NavigableLite
-	extends Omit<
-		Navigable,
-		| 'onDestroy'
-		| 'listenActive'
-		| 'startNavigation'
-		| 'handleKeyMatch'
-		| 'handleKeyboard'
-		| 'useManualBlur'
-	> {
-	Index: Writable<number>;
-	ManualIndex: Writable<number>;
-	set: (index: number) => void;
-	useNavigation: (node: HTMLElement, callback?: (index: number) => void) => Unsubscriber;
-}
-
 export interface Notifiable<T> extends Writable<T> {
 	notify: Notifier<T>;
 }
