@@ -20,6 +20,7 @@ export function registrable<T>(val: T[] = []): Registrable<T> {
 				if (!valueIsNumberArr || !stateIsNumberArr)
 					throw new TypeError('Number Array Expected');
 
+				NewItem.set(registeredIndex as unknown as T);
 				value.push(registeredIndex as unknown as T);
 				return [...state, registeredIndex] as unknown as T[];
 			});
@@ -33,6 +34,7 @@ export function registrable<T>(val: T[] = []): Registrable<T> {
 				if (duplicate) throw new Error('Duplicate Element');
 
 				if (onRegister) onRegister(val);
+				NewItem.set(val);
 				return value.push(val), [...state, val];
 			});
 
