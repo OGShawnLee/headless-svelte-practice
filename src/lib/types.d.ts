@@ -30,6 +30,14 @@ export interface Hashable<K, V> extends Readable<Map<K, V>> {
 	listenNewItem: (callback: (newItem: [K, V]) => void) => Unsubscriber;
 }
 
+export type Keys =
+	| 'ArrowUp'
+	| 'ArrowDown'
+	| 'ArrowRight'
+	| 'ArrowLeft'
+	| 'Enter'
+	| 'Space';
+
 export interface Navigable {
 	handleSelection: (index: number) => () => void;
 	handleKeyboard: (event: KeyboardEvent) => void;
