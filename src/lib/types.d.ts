@@ -8,9 +8,11 @@ export interface Activable extends Readable<boolean> {
 	toggle: () => void;
 }
 
-export interface Component {
-	subscribe: (callback: (exists: boolean, id: string) => void) => Unsubscriber;
-	appear: (node: HTMLElement, id: string) => void;
+interface Component<E extends Element = HTMLElement> {
+	node?: E;
+	subscribe: (callback: (node?: E, id?: string) => void) => Unsubscriber;
+	exists: () => [boolean, E | undefined];
+	appear: (node: E, id: string) => void;
 	disappear: () => void;
 }
 
