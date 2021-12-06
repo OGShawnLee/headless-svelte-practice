@@ -1,5 +1,5 @@
 import type { Readable, Writable, Unsubscriber } from 'svelte/store';
-import { readable } from 'svelte/store';
+import { derived, readable } from 'svelte/store';
 import { isStore } from './predicate';
 
 export function useSubscribers(
@@ -16,4 +16,21 @@ export function toStore<T>(
 	type: (value: T) => Readable<T> | Writable<T> = readable
 ) {
 	return isStore(Store) ? Store : Store ? type(Store) : type(defaultValue);
+}
+
+export function useValidator<T>(
+	Main: Readable<T>,
+	Validator: Readable<boolean>,
+	useNegative = false
+) {
+	const MainLoop = derived(
+		[Main, Validator],
+		([$Main, $Validator]) => [$Main, $Validator] as [main: T, validator: boolean]
+	);
+	return function (callback: (main: T) => void) {
+		return MainLoop.subscribe(([main, validator]) => {
+			if (useNegative) !validator && callback(main);
+			else validator && callback(main);
+		});
+	};
 }
