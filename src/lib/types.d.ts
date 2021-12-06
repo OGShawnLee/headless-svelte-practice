@@ -48,7 +48,7 @@ interface Navigable extends NavigableStores, NavigableMethods {
 	handleSelection: (index: number) => (event: MouseEvent | KeyboardEvent) => void;
 	useDynamicOpen: (
 		node: HTMLElement,
-		startWithFunction: (Data: NavigableData) => 'FIRST' | 'LAST' | 'AUTO' | number
+		startWithFunction: (Data: NavigableData) => NavigableStartWith
 	) => Promise<void>;
 	useNavigation: (node: HTMLElement) => EventListenerRemover;
 	usePlugins: (node: HTMLElement, ...pluginFn: NavigablePluginFunction[]) => Unsubscriber;
@@ -101,6 +101,8 @@ type NavigablePluginFunction = (
 		Stores: NavigableStores;
 	}
 ) => EventListenerRemover;
+
+type NavigableStartWith = 'FIRST' | 'LAST' | 'AUTO' | number;
 
 export interface Notifiable<T> extends Writable<T> {
 	notify: Notifier<T>;
