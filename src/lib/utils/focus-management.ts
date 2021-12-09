@@ -1,8 +1,7 @@
 import { isHTMLElement } from './predicate';
 
 export function focusFirstElement(node: HTMLElement) {
-	const internalElements: HTMLElement[] = [];
-	useInternalElements(node, internalElements);
+	const internalElements = useDOMTraversal(node);
 
 	const firstElement = internalElements.find((element) => element.tabIndex >= 0);
 	return firstElement?.focus(), Boolean(firstElement);
@@ -44,13 +43,16 @@ function useElements(node: HTMLElement) {
 	return [arrInternal, arrExternal] as [internal: HTMLElement[], external: HTMLElement[]];
 }
 
-function useInternalElements(node: HTMLElement, arr: HTMLElement[]) {
-	if (!node.hasChildNodes()) return arr.push(node), void 0;
-	Array.from(node.children).forEach((child) => {
-		if (isHTMLElement(child)) {
-			arr.push(child), useInternalElements(child, arr);
-		}
-	});
+function useDOMTraversal(node: HTMLElement) {
+	const items: HTMLElement[] = [];
+
+	function useTraversal(node: HTMLElement) {
+		if (!node.hasChildNodes()) return items.push(node);
+		const children = Array.from(node.children).filter(isHTMLElement);
+		children.forEach((child) => (items.push(child), useTraversal(child)));
+	}
+
+	return useTraversal(node), items;
 }
 
 function usePreventBrowserFocus(
