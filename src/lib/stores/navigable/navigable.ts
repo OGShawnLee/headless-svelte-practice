@@ -155,19 +155,11 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 		useNavigation(node) {
 			const { goBack, goNext, useFirst, useLast, useSelected } = Methods;
 
-			let isParentFocused = false;
-			function handleParentFocus() {
-				isParentFocused = true;
-			}
-
-			function handleChildrenFocus(event: FocusEvent) {
-				if (event.target !== node) isParentFocused = false;
-			}
-
 			function handleNavigation(event: KeyboardEvent) {
 				const { code, ctrlKey } = event;
 				if (isNotValidKey(code)) return;
 				const { isVertical, isWaiting } = Data;
+				const isParentFocused = document.activeElement === node;
 
 				switch (code) {
 					case 'Space':
@@ -209,14 +201,9 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			const STOP_SUBSCRIBERS = listenStores();
 
 			node.addEventListener('keydown', handleNavigation);
-			node.addEventListener('focus', handleParentFocus);
-			node.addEventListener('focusin', handleChildrenFocus);
 			return function () {
 				STOP_SUBSCRIBERS();
-				isParentFocused = false;
 				node.removeEventListener('keydown', handleNavigation);
-				node.removeEventListener('focus', handleParentFocus);
-				node.removeEventListener('focusin', handleChildrenFocus);
 			};
 		},
 		usePlugins(node, ...pluginFn) {
