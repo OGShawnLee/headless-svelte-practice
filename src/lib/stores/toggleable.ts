@@ -49,19 +49,15 @@ export function toggleable(
 
 			if (ref instanceof Event) {
 				const { target } = ref;
-				if (!isHTMLElement(target) || isWithin(panel, target)) return button.focus();
-
-				if (isFocusable(target)) target.focus();
-				else ref.preventDefault(), button.focus();
+				if (!isHTMLElement(target) || isWithin(panel, target) || !isFocusable(target))
+					return ref.preventDefault(), button.focus();
 			}
 		},
 	};
 
 	function onClickOutside(event: MouseEvent) {
 		const { target } = event;
-		if (!isHTMLElement(target)) return;
-
-		if (target === button) return;
+		if (target === button || !isHTMLElement(target)) return;
 		if (!isWithin(panel, target)) Methods.close(event);
 	}
 
@@ -71,8 +67,8 @@ export function toggleable(
 
 	function onFocusLeave(event: FocusEvent) {
 		const { target } = event;
-		if (target === document.body || target === button) return;
-		if (isHTMLElement(target) && !isWithin(panel, target)) Methods.close(event);
+		if (target === button || target === document.body || !isHTMLElement(target)) return;
+		if (!isWithin(panel, target)) Methods.close(event);
 	}
 
 	return {
