@@ -121,32 +121,18 @@ export interface Registrable<T> extends Readable<T[]> {
 	listenNewItem: (callback: (newItem: T) => void) => Unsubscriber;
 }
 
-export interface Selectable<T> extends Readable<T> {
+interface Selectable<K, V> extends Readable<V> {
+	Options: Hashable<K, V>['subscribe'];
+	Keys: Readable<K[]>;
+	Values: Readable<V[]>;
 	SelectedIndex: Writable<number>;
-	selectIndex: Writable<number>['set'];
-	selectIndexEvent: (index: number) => () => void;
-	set: Writable<T>['set'];
-	finishWaiting: () => void;
-	Keys: Hashable<HTMLElement, T>['Keys'];
-	Values: Hashable<HTMLElement, V>['Values'];
-	listenSelection: () => Unsubscriber;
-	listenNewItem: Hashable<HTMLElement, V>['listenNewItem'];
-	initOption: (optionSettings: {
-		initialValue: T;
-		initialIsSelected: boolean;
-		Selected: Notifiable<boolean>;
-	}) => {
-		set: Writable<T>['set'];
-		Id: Readable<number>;
-		registerOption: (key: HTMLElement, onRegister?: (key: HTMLElement) => void) => number;
-		unregisterOption: (key: HTMLElement) => void;
-		listenOption: (
-			key: HTMLElement,
-			registeredIndex: number,
-			isSelectedCallback?: (isSelected: boolean) => void
-		) => Unsubscriber;
-	};
 	Waiting: Readable<boolean>;
+	select: (index: number) => void;
+	useInitialValueMatch: () => [hasMatch: boolean, matchIndex: number];
+	useSelection: () => Unsubscriber;
+	register: (key: K, value: V, isSelected: boolean) => number;
+	update: Hashable<K, V>['update'];
+	unregister: Hashable<K, V>['unregister'];
 }
 
 export type SelectableOption<T> = ReturnType<Selectable<T>['initOption']>;
