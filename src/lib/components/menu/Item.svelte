@@ -4,6 +4,9 @@
 
 	let className = '';
 	export { className as class };
+	export let activeClass = '';
+
+	$: finalClass = `${className} ${selected ? activeClass : ''}`;
 
 	const MenuContext = getContext(MENU_CONTEXT_KEY);
 	if (!isMenuContext(MenuContext)) throw Error('Invalid Menu Context');
@@ -13,6 +16,6 @@
 	const { item } = MenuContext;
 </script>
 
-<button class={className} use:item={notifySelected} on:click>
+<button class={finalClass} use:item={notifySelected} on:click>
 	<slot {selected} />
 </button>
