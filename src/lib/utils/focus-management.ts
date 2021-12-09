@@ -21,28 +21,6 @@ export function removeFocusable(node: HTMLElement) {
 	return () => makeFocusable(node, originalTabIndex);
 }
 
-function useElements(node: HTMLElement) {
-	const internalElements = new Set<HTMLElement>();
-	const externalElements = new Set<HTMLElement>();
-
-	for (let index = 0; index < FOCUSABLE_ELEMENTS.length; index++) {
-		const selector = FOCUSABLE_ELEMENTS[index];
-		const selectedElements = document.querySelectorAll(selector);
-
-		for (let counter = 0; counter < selectedElements.length; counter++) {
-			const element = selectedElements[counter];
-
-			if (!isHTMLElement(element)) continue;
-			if (node.contains(element)) internalElements.add(element);
-			else externalElements.add(element);
-		}
-	}
-
-	let arrInternal = Array.from(internalElements);
-	let arrExternal = Array.from(externalElements);
-	return [arrInternal, arrExternal] as [internal: HTMLElement[], external: HTMLElement[]];
-}
-
 function useDOMTraversal(node: HTMLElement) {
 	const items: HTMLElement[] = [];
 
@@ -94,18 +72,3 @@ export function useFocusTrap(node: HTMLElement, fallback?: HTMLElement | Element
 export function preventTabbing(event: KeyboardEvent) {
 	if (event.key === 'Tab') event.preventDefault();
 }
-
-// https://github.com/Duder-onomy/svelte-focus-trap/blob/master/src/utils.js
-const FOCUSABLE_ELEMENTS = [
-	'a[href]',
-	'area[href]',
-	'input:not([disabled]):not([type="hidden"]):not([aria-hidden])',
-	'select:not([disabled]):not([aria-hidden])',
-	'textarea:not([disabled]):not([aria-hidden])',
-	'button:not([disabled]):not([aria-hidden])',
-	'iframe',
-	'object',
-	'embed',
-	'[contenteditable]',
-	'[tabindex]:not([tabindex^="-"])',
-];
