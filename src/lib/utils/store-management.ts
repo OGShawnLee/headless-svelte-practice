@@ -27,10 +27,16 @@ export function useValidator<T>(
 		[Main, Validator],
 		([$Main, $Validator]) => [$Main, $Validator] as [main: T, validator: boolean]
 	);
-	return function (callback: (main: T) => void) {
-		return MainLoop.subscribe(([main, validator]) => {
-			if (useNegative) !validator && callback(main);
-			else validator && callback(main);
-		});
-	};
+
+	return useNegative
+		? function (callback: (main: T) => void) {
+				return MainLoop.subscribe(([main, validator]) => {
+					!validator && callback(main);
+				});
+		  }
+		: function (callback: (main: T) => void) {
+				return MainLoop.subscribe(([main, validator]) => {
+					validator && callback(main);
+				});
+		  };
 }
