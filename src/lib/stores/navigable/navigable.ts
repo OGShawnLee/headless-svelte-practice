@@ -29,14 +29,14 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 		items: isArray(Items) ? Items : [],
 		isVertical: false,
 		isManual: false,
-		isWaiting: false,
+		isWaiting: true,
 		selectedItem: undefined,
 		TargetIndex: Index,
 	};
 
 	const ManualIndex = writable(0);
 	const TargetIndex = derived(Manual, ($Manual) => ($Manual ? ManualIndex : Index));
-	const Waiting = writable(true);
+	const Waiting = writable(true, (set) => set(true));
 	const SelectedItem = isArray(Items)
 		? derived([Index, Waiting], ([$Index, $Waiting]) => {
 				return $Waiting ? undefined : Data.items[$Index];
@@ -47,9 +47,10 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 	const Stores = { ...CoreStores, Items, ManualIndex, SelectedItem, Waiting };
 
+	const MainLoop = useValidator(Index, Waiting, true);
+
 	function listenStores() {
 		const ItemsSubscriber = Items instanceof Array ? undefined : Items;
-		const onChangeLoop = useValidator(Index, Waiting, true);
 		return useSubscribers(
 			Index.subscribe(ManualIndex.set),
 			TargetIndex.subscribe((TargetIndex) => {
@@ -71,7 +72,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			Waiting.subscribe((isWaiting) => {
 				Data.isWaiting = isWaiting;
 			}),
-			Optional.onChange && onChangeLoop(Optional.onChange)
+			Optional.onChange && MainLoop(Optional.onChange)
 		);
 	}
 
@@ -213,7 +214,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			});
 		},
 		isSelected(index, callback) {
-			return Index.subscribe((idx) => callback(index === idx));
+			return MainLoop((idx) => callback(idx === index));
 		},
 		onDestroy(callback) {
 			callback(Stores);
