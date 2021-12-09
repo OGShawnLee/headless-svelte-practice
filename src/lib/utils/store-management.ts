@@ -18,6 +18,10 @@ export function toStore<T>(
 	return isStore(Store) ? Store : Store ? type(Store) : type(defaultValue);
 }
 
+export function toReadable<T>(Store: Readable<T>) {
+	return derived(Store, ($Store) => $Store);
+}
+
 export function useValidator<T>(
 	Main: Readable<T>,
 	Validator: Readable<boolean>,
