@@ -105,7 +105,7 @@ export function useFocusTrap(node: HTMLElement, fallback?: HTMLElement | Element
 	};
 }
 
-export function useSimpleFocusTrap(event: KeyboardEvent) {
+export function preventTabbing(event: KeyboardEvent) {
 	if (event.key === 'Tab') event.preventDefault();
 }
 
