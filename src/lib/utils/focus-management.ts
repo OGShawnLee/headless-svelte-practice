@@ -16,9 +16,7 @@ export function makeFocusable(node: HTMLElement, tabIndex = 0) {
 }
 
 export function removeFocusable(node: HTMLElement) {
-	const originalTabIndex = node.tabIndex;
-	node.tabIndex = -1;
-	return () => makeFocusable(node, originalTabIndex);
+	return (node.tabIndex = -1), node;
 }
 
 function useDOMTraversal(node: HTMLElement) {
