@@ -161,14 +161,8 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 				const { isVertical, isWaiting } = Data;
 				const isParentFocused = document.activeElement === node;
 
-				switch (code) {
-					case 'Space':
-					case 'Enter':
-						if (isParentFocused) {
-							event.preventDefault();
-							isWaiting ? useFirst() : useSelected();
-						}
-				}
+				if (['Enter', 'Space'].includes(code) && isParentFocused)
+					return event.preventDefault(), isWaiting ? useFirst() : useSelected();
 
 				if (isVertical)
 					switch (code as Keys) {
