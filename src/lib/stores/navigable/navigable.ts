@@ -1,6 +1,6 @@
 import type { Keys, Navigable, NavigableData, NavigableMethods } from '$lib/types';
 import type { Readable, Writable } from 'svelte/store';
-import { toStore, useSubscribers, isNotValidKey } from '$lib/utils';
+import { toStore, useSubscribers, isNotValidKey, useValidator } from '$lib/utils';
 import { isOverflowed } from '$lib/utils/dom-management';
 import { derived, writable } from 'svelte/store';
 import { isArray } from '$lib/utils/predicate';
@@ -12,6 +12,7 @@ interface NavigableSettings {
 	Manual?: Readable<boolean> | boolean;
 	Vertical?: Readable<boolean> | boolean;
 	Wait?: Readable<boolean> | boolean;
+	onChange?: (index: number) => void;
 }
 
 export function navigable({ Items, ...Optional }: NavigableSettings): Navigable {
@@ -48,6 +49,7 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 
 	function listenStores() {
 		const ItemsSubscriber = Items instanceof Array ? undefined : Items;
+		const onChangeLoop = useValidator(Index, Waiting, true);
 		return useSubscribers(
 			Index.subscribe(ManualIndex.set),
 			TargetIndex.subscribe((TargetIndex) => {
@@ -68,7 +70,8 @@ export function navigable({ Items, ...Optional }: NavigableSettings): Navigable 
 			Wait.subscribe(Waiting.set),
 			Waiting.subscribe((isWaiting) => {
 				Data.isWaiting = isWaiting;
-			})
+			}),
+			Optional.onChange && onChangeLoop(Optional.onChange)
 		);
 	}
 
