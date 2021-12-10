@@ -1,16 +1,15 @@
 <script context="module" lang="ts">
 	import type { Activable, Notifier } from '$lib/types';
 	import { registrable } from '$lib/stores';
-	import { useSubscribers } from '$lib/utils';
-	import { useNamer, use_id } from '$lib/utils/components';
 	import { propsIn } from '$lib/utils/predicate';
+	import { use_id, useNamer, useSubscribers } from '$lib/utils';
 
 	export const SWITCH_KEY = 'SVELTE-HEADLESS-SWITCH';
-	const generateID = use_id();
+	const generateId = use_id();
 
 	function initSwitch({ Activable }: SwitchSettings) {
 		const { toggle } = Activable;
-		const id = generateID.next().value as number;
+		const id = generateId.next().value as number;
 		const [baptize, switchName] = useNamer('switch', id);
 
 		const Labels = registrable<string>([]);
@@ -22,7 +21,7 @@
 		const preventDefault = (e: Event) => e.preventDefault();
 		return {
 			switcher: (node: HTMLElement) => {
-				const stopSubcribers = useSubscribers(
+				const STOP_SUBSCRIBERS = useSubscribers(
 					Activable.subscribe((isActive) => {
 						node.ariaChecked = String(isActive);
 					}),
@@ -44,7 +43,7 @@
 				node.addEventListener('click', toggle);
 				return {
 					destroy: () => {
-						stopSubcribers();
+						STOP_SUBSCRIBERS();
 						node.removeEventListener('click', toggle);
 					},
 				};
@@ -102,8 +101,9 @@
 	import { getContext, hasContext, setContext } from 'svelte';
 	import { isSwitchGroupContext, SWITCH_GROUP_KEY } from './Group.svelte';
 
-	export let checked = false;
 	let className = '';
+
+	export let checked = false;
 	export { className as class };
 	export let activeClass = '';
 
@@ -120,8 +120,11 @@
 	if (hasGroupContext) {
 		const GroupContext = getContext(SWITCH_GROUP_KEY);
 		if (!isSwitchGroupContext(GroupContext)) throw Error('Invalid Switch Group Context');
+
 		const { notifyGroupChecked, LabelGroupAction, DescriptionGroupAction } = GroupContext;
-		LabelGroupAction.set(label), DescriptionGroupAction.set(description);
+
+		LabelGroupAction.set(label);
+		DescriptionGroupAction.set(description);
 		groupNotifier = notifyGroupChecked;
 	}
 
