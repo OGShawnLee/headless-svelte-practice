@@ -1,49 +1,96 @@
 <script lang="ts">
-	import Menu, { MenuButton, MenuItem, MenuItems } from '$lib/components/menu/';
+	import Menu, { MenuButton, MenuItems, MenuItem } from '$lib/components/menu/';
 	import { fade } from 'svelte/transition';
 
-	let numOOptions = 5;
-	$: options = [...Array(numOOptions).keys()];
-
-	function moreOOptions({ key }: KeyboardEvent) {
-		if (key === 'r') numOOptions < 20 && numOOptions++;
+	let numOfItems = 3;
+	function more({ key }: KeyboardEvent) {
+		if (key === 'k') numOfItems++;
 	}
+
+	$: items = [...Array(numOfItems).keys()];
 </script>
 
-<svelte:body on:keydown={moreOOptions} />
+<svelte:window on:keydown={more} />
 
-<button> External </button>
-<button> More </button>
+<svelte:head>
+	<link
+		rel="stylesheet"
+		href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
+	/>
+</svelte:head>
 
-<Menu>
-	<MenuButton>Open</MenuButton>
-	<MenuItems active="active" unactive="unactive">
-		{#each options as idx}
-			<MenuItem let:selected>MenuItem {idx} {selected}</MenuItem>
+<Menu let:open>
+	<MenuButton class="button">Toggle {open}</MenuButton>
+	<MenuItems>
+		<MenuItem class="button" activeClass="is-primary" let:selected>
+			Add {selected}
+		</MenuItem>
+		<MenuItem class="button" activeClass="is-danger" let:selected>
+			Delete {selected}
+		</MenuItem>
+		<MenuItem class="button" activeClass="is-primary" let:selected>
+			Edit {selected}
+		</MenuItem>
+		<MenuItem class="button" activeClass="is-primary" let:selected>
+			Favourite {selected}
+		</MenuItem>
+		<MenuItem class="button" activeClass="is-primary" let:selected>
+			Update {selected}
+		</MenuItem>
+	</MenuItems>
+</Menu>
+
+<p>
+	Lorem ipsum dolor sit amet consectetur adipisicing elit. Itaque facilis dignissimos,
+	voluptas exercitationem ducimus labore porro sint perspiciatis reprehenderit ad debitis
+	explicabo illum soluta nostrum voluptatum repellendus excepturi beatae magnam? Cumque
+	asperiores quod tempora veniam molestiae magni voluptatem, aut debitis, quibusdam
+	exercitationem dolor soluta quia esse ab adipisci ad eos!
+	<button>External</button>
+</p>
+
+<Menu let:open>
+	<MenuButton class="button">Toggle {open}</MenuButton>
+	<MenuItems>
+		<MenuItem class="button" activeClass="is-primary">Add</MenuItem>
+		<MenuItem class="button" activeClass="is-danger">Delete</MenuItem>
+		<MenuItem class="button" activeClass="is-primary">Edit</MenuItem>
+		<MenuItem class="button" activeClass="is-primary">Favourite</MenuItem>
+		<MenuItem class="button" activeClass="is-primary">Update</MenuItem>
+	</MenuItems>
+</Menu>
+
+<p>
+	Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea ullam vel enim aut, sed
+	omnis voluptatibus, dolorum doloremque non earum dolor obcaecati facere cumque tempore?
+	Culpa iusto vel modi porro!
+</p>
+
+<input type="number" min="1" max="500" bind:value={numOfItems} />
+
+<Menu let:open>
+	<MenuButton class="button">Toggle {open}</MenuButton>
+	<MenuItems>
+		{#each items as item}
+			<MenuItem class="button" activeClass="is-primary">Menu Item {item}</MenuItem>
 		{/each}
 	</MenuItems>
 </Menu>
 
-<h2>Using Transitions</h2>
-<Menu let:button let:menu let:open>
-	<button use:button>Toggle</button>
-	<div slot="menu" use:menu transition:fade>
-		<MenuItem let:selected>{selected}Edit</MenuItem>
-		<MenuItem let:selected>{selected} Add</MenuItem>
-		<MenuItem let:selected>{selected} Something</MenuItem>
+<p>
+	Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolorem eligendi sapiente sit
+	aliquam. Enim consequatur, totam cum, distinctio minima eligendi ratione pariatur
+	voluptatem fuga corporis laborum! Debitis nostrum ex impedit earum odit nobis ipsam
+	cupiditate, libero molestiae quos. Fuga, perferendis.
+</p>
+
+<Menu let:open let:menu let:button>
+	<button class="button" use:button>Toggle {open}</button>
+	<div slot="menu" use:menu transition:fade|local>
+		<MenuItem class="button" activeClass="is-primary">Add</MenuItem>
+		<MenuItem class="button" activeClass="is-danger">Delete</MenuItem>
+		<MenuItem class="button" activeClass="is-primary">Edit</MenuItem>
+		<MenuItem class="button" activeClass="is-primary">Favourite</MenuItem>
+		<MenuItem class="button" activeClass="is-primary">Update</MenuItem>
 	</div>
 </Menu>
-
-<style>
-	:global(.active) {
-		color: green;
-	}
-
-	:global(.unactive) {
-		color: red;
-	}
-
-	button:focus {
-		background: black;
-	}
-</style>
