@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
-	import type { Readable } from 'svelte/store';
-	import type { Notifiable, Notifier } from '$lib/types';
+	import type { Readable, Writable } from 'svelte/store';
+	import type { Notifier } from '$lib/types';
 	import { hashable, notifiable, registrable } from '$lib/stores';
 	import { navigable, useManualBlur } from '$lib/stores/navigable';
 	import { useId, useNamer, useSubscribers } from '$lib/utils';
@@ -97,7 +97,7 @@
 		propsIn(val, 'Index', 'tab', 'tablist', 'usePanel');
 
 	interface TabsSettings {
-		Index: Notifiable<number>;
+		Index: Writable<number>;
 		Manual: Readable<boolean>;
 		Vertical: Readable<boolean>;
 	}
