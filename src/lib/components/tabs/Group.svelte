@@ -110,6 +110,7 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { setContext } from 'svelte';
+	import { toReadable } from '$lib/utils';
 
 	export let index = 0;
 	export let manual = false;
@@ -126,7 +127,7 @@
 	$: onChange(index);
 
 	const TabsState = initTabs({ Index, Manual, Vertical });
-	setContext(TABS_CONTEXT_KEY, { Index, ...TabsState });
+	setContext(TABS_CONTEXT_KEY, { Index: toReadable(Index), ...TabsState });
 
 	const { tablist } = TabsState;
 </script>

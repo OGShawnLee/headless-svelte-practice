@@ -64,15 +64,17 @@
 <script lang="ts">
 	import { toggleable } from '$lib/stores';
 	import { setContext } from 'svelte';
+	import { toReadable } from '$lib/utils';
 
 	export let open = false;
 
 	const Toggleable = toggleable(open, (bool) => (open = bool));
+	const Open = toReadable(Toggleable);
 
 	$: Toggleable.set(open);
 
 	const { button, panel } = initDisclosure({ Toggleable });
-	setContext(DISCLOSURE_CONTEXT_KEY, { Open: Toggleable, button, panel });
+	setContext(DISCLOSURE_CONTEXT_KEY, { Open, button, panel });
 </script>
 
 <slot {open} {button} {panel} close={Toggleable.close} />

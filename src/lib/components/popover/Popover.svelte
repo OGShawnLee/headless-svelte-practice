@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
 	import type { PopoverGroupContext } from '$lib/components/popover/Group.svelte';
-	import { derived, Readable } from 'svelte/store';
+	import type { Readable } from 'svelte/store';
 	import { propsIn, useId, useNamer, useSubscribers } from '$lib/utils';
 
 	export const POPOVER_CONTEXT_KEY = 'SVELTE-HEADLESS-POPOVER';
@@ -70,6 +70,7 @@
 	import { toggleable } from '$lib/stores';
 	import { getContext, setContext } from 'svelte';
 	import { isPopoverGroupContext, POPOVER_GROUP_CONTEXT_KEY } from './Group.svelte';
+	import { toReadable } from '$lib/utils';
 
 	const GroupContext = getContext(POPOVER_GROUP_CONTEXT_KEY);
 	if (GroupContext !== undefined && !isPopoverGroupContext(GroupContext))
@@ -82,8 +83,7 @@
 
 	const Toggleable = toggleable(open, (bool) => (open = bool));
 	const { button, panel } = initPopover({ Toggleable, GroupContext });
-
-	const Open = derived(Toggleable, ($Open) => $Open);
+	const Open = toReadable(Toggleable);
 
 	setContext(POPOVER_CONTEXT_KEY, { Open, button, panel });
 </script>
