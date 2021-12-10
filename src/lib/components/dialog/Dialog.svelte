@@ -2,8 +2,7 @@
 	import type { Toggleable } from '$lib/types';
 	import type { Readable, Unsubscriber } from 'svelte/store';
 	import Portal, { portal } from 'svelte-portal/src/Portal.svelte';
-	import { clickOutside, escapeKey } from '$lib/utils/definedListeners';
-	import { useNamer, useSubscribers, use_id } from '$lib/utils';
+	import { use_id, useNamer, useSubscribers } from '$lib/utils';
 	import { focusFirstElement, useFocusTrap } from '$lib/utils/focus-management';
 	import { hideScrollbar } from '$lib/utils/dom-management';
 	import { isHTMLElement, propsIn } from '$lib/utils/predicate';
@@ -13,7 +12,6 @@
 	const generate_id = use_id();
 
 	function initDialog({ Toggleable, InitialFocus }: DialogSettings) {
-		const { defineElements, usePanel } = Toggleable;
 		const id = generate_id.next().value as number;
 		const [baptize, modalName] = useNamer('dialog', id);
 
@@ -40,45 +38,43 @@
 			},
 			modal: (node: HTMLElement) => {
 				const togglerButton = document.activeElement;
-				if (isHTMLElement(togglerButton)) defineElements({ button: togglerButton });
+				if (isHTMLElement(togglerButton)) Toggleable.defineButton(togglerButton, '');
 
-				let destroyPortal = usingOverlay
+				let DESTROY_PORTAL = usingOverlay
 					? portal(node, `#${overlayName}`).destroy
 					: undefined;
 
-				const restoreFocus = useFocusTrap(node, togglerButton);
-				const showScrollbar = hideScrollbar();
+				const RESTORE_FOCUS = useFocusTrap(node, togglerButton);
+				const SHOW_SCROLLBAR = hideScrollbar();
 
-				const disposePanel = usePanel({
-					panelElement: node,
-					beforeClose: restoreFocus,
-					listenersBuilders: [clickOutside, escapeKey],
+				const DISPOSE_PANEL = Toggleable.usePanel(node, {
+					listeners: ['ESCAPE_KEY', 'CLICK_OUTSIDE'],
 				});
 
-				let stopSubscribers: Unsubscriber;
+				let STOP_SUBSCRIBERS: Unsubscriber;
 				tick().then(() => {
 					focusFirstElement(node);
-					stopSubscribers = useSubscribers(
+					STOP_SUBSCRIBERS = useSubscribers(
 						InitialFocus.subscribe((element) => element?.focus()),
 						Title.subscribe((exists, id) => {
-							if (exists) node.setAttribute('aria-labelledby', id);
+							if (exists && id) node.setAttribute('aria-labelledby', id);
 							else node.removeAttribute('aria-labelledby');
 						}),
 						Description.subscribe((exists, id) => {
-							if (exists) node.setAttribute('aria-describedby', id);
+							if (exists && id) node.setAttribute('aria-describedby', id);
 							else node.removeAttribute('aria-describedby');
 						})
 					);
 				});
 
 				node.id = modalName;
-				node.ariaModal = String(true);
+				node.ariaModal = 'true';
 				node.setAttribute('role', 'dialog');
 				return {
 					destroy: () => {
-						if (destroyPortal) destroyPortal();
-						if (stopSubscribers) stopSubscribers();
-						disposePanel(), showScrollbar(), restoreFocus();
+						if (DESTROY_PORTAL) DESTROY_PORTAL();
+						if (STOP_SUBSCRIBERS) STOP_SUBSCRIBERS();
+						DISPOSE_PANEL(), SHOW_SCROLLBAR(), RESTORE_FOCUS();
 					},
 				};
 			},

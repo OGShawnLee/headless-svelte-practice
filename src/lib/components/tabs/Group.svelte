@@ -1,9 +1,9 @@
 <script context="module" lang="ts">
 	import type { Readable } from 'svelte/store';
 	import type { Notifiable, Notifier } from '$lib/types';
-	import { navigableLite, useManualBlur } from '$lib/stores/navigable-lite';
-	import { hashable, notifiable, staticRegistrable } from '$lib/stores';
-	import { useNamer, useStoreListeners, useSubscribers, use_id } from '$lib/utils';
+	import { hashable, notifiable, registrable } from '$lib/stores';
+	import { navigable, useManualBlur } from '$lib/stores/navigable';
+	import { use_id, useNamer, useSubscribers } from '$lib/utils';
 	import { makeFocusable, removeFocusable } from '$lib/utils/focus-management';
 	import { propsIn } from '$lib/utils/predicate';
 
@@ -11,24 +11,23 @@
 	const generate_id = use_id();
 
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
-		const { value: items, ...Tabs } = staticRegistrable<HTMLElement>([]);
+		const Tabs = registrable<HTMLElement>([]);
 		const Panels = hashable<number, string | undefined>();
-		const Navigable = navigableLite({ items, Index, Manual, Vertical });
+		const Navigable = navigable({ Items: Tabs, Index, Manual, Vertical });
 
 		const id = generate_id.next().value as number;
 		const [baptize, tabsName] = useNamer('tabs', id);
 		return {
 			tablist: (node: HTMLElement) => {
-				const { Index, ManualIndex } = Navigable;
-				Tabs.useItems((tab) => (tab.ariaSelected = String(false)));
-
 				const STOP_SUBSCRIBERS = useSubscribers(
+					Navigable.useNavigation(node),
+					Navigable.usePlugins(node, useManualBlur),
 					Navigable.listenSelected((selected, previous) => {
 						makeFocusable(selected);
-						selected.ariaSelected = String(true);
+						selected.ariaSelected = 'true';
 						if (previous) {
 							removeFocusable(previous);
-							previous.ariaSelected = String(false);
+							previous.ariaSelected = 'false';
 						}
 					}),
 					Vertical.subscribe((isVertical) => {
@@ -36,22 +35,16 @@
 					})
 				);
 
-				const STOP_LISTENERS = useStoreListeners(
-					Navigable.useNavigation(node),
-					useManualBlur(node, items, Index, ManualIndex)
-				);
-
 				node.id = tabsName;
 				node.setAttribute('role', 'tablist');
 				return {
 					destroy: () => {
-						STOP_SUBSCRIBERS(), STOP_LISTENERS();
+						STOP_SUBSCRIBERS();
 					},
 				};
 			},
 			tab: (node: HTMLElement, notifySelected: Notifier<boolean>) => {
 				const index = Tabs.register(node, removeFocusable);
-				const selectTab = Navigable.handleSelection(index);
 				const tabName = baptize('tab', index);
 
 				const stopSubscribers = useSubscribers(
@@ -62,13 +55,17 @@
 					})
 				);
 
+				const handleSelection = Navigable.handleSelection(index);
+
 				node.id = tabName;
 				node.setAttribute('role', 'tab');
-				node.addEventListener('click', selectTab);
+				node.addEventListener('mousedown', handleSelection);
+				node.addEventListener('keydown', handleSelection);
 				return {
 					destroy: () => {
-						Tabs.unregister(index), stopSubscribers();
-						node.removeEventListener('click', selectTab);
+						Tabs.unregister(node, index), stopSubscribers();
+						node.removeEventListener('mousedown', handleSelection);
+						node.removeEventListener('keydown', handleSelection);
 					},
 				};
 			},
@@ -81,6 +78,7 @@
 
 					node.tabIndex = 0;
 					node.id = panelName;
+					node.ariaSelected = 'false';
 					node.setAttribute('role', 'tabpanel');
 					node.setAttribute('aria-labelledby', tabName);
 					return {

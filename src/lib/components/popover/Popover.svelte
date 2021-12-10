@@ -2,12 +2,10 @@
 	import type { Toggleable } from '$lib/types';
 	import type { PopoverGroupContext } from '$lib/components/popover/Group.svelte';
 	import { derived, Readable } from 'svelte/store';
-	import { useNamer, useSubscribers, use_id } from '$lib/utils';
-	import { clickOutside, escapeKey, focusLeave } from '$lib/utils/definedListeners';
-	import { propsIn } from '$lib/utils/predicate';
+	import { propsIn, use_id, useNamer, useSubscribers } from '$lib/utils';
 
-	const generate_id = use_id();
 	export const POPOVER_CONTEXT_KEY = 'SVELTE-HEADLESS-POPOVER';
+	const generate_id = use_id();
 
 	function initPopover({ Toggleable, GroupContext }: PopoverSettings) {
 		const id = generate_id.next().value as number;
@@ -16,9 +14,8 @@
 		const buttonName = baptize('button');
 		function isolatedButton(node: HTMLElement) {
 			const Panel = Toggleable.Panel;
-			const DISPOSE_BUTTON = Toggleable.useButton(node);
-
 			const STOP_SUBSCRIBERS = useSubscribers(
+				Toggleable.useButton(node, { useDefaultKeys: true }),
 				Toggleable.subscribe((isOpen) => {
 					node.ariaExpanded = String(isOpen);
 				}),
@@ -32,16 +29,15 @@
 			node.ariaHasPopup = 'true';
 			return {
 				destroy() {
-					DISPOSE_BUTTON(), STOP_SUBSCRIBERS();
+					STOP_SUBSCRIBERS();
 				},
 			};
 		}
 
 		const panelName = baptize('panel');
 		function isolatedPanel(node: HTMLElement) {
-			const DISPOSE_PANEL = Toggleable.usePanel({
-				listeners: [escapeKey, clickOutside, focusLeave],
-				panelElement: node,
+			const DISPOSE_PANEL = Toggleable.usePanel(node, {
+				listeners: ['FOCUS_LEAVE', 'ESCAPE_KEY', 'CLICK_OUTSIDE'],
 			});
 
 			node.id = panelName;
@@ -75,14 +71,14 @@
 	import { getContext, setContext } from 'svelte';
 	import { isPopoverGroupContext, POPOVER_GROUP_CONTEXT_KEY } from './Group.svelte';
 
+	const GroupContext = getContext(POPOVER_GROUP_CONTEXT_KEY);
+	if (GroupContext !== undefined && !isPopoverGroupContext(GroupContext))
+		throw new Error('Invalid Group Context');
+
 	let open = false;
 
 	let className = '';
 	export { className as class };
-
-	const GroupContext = getContext(POPOVER_GROUP_CONTEXT_KEY);
-	if (GroupContext !== undefined && !isPopoverGroupContext(GroupContext))
-		throw new Error('Invalid Group Context');
 
 	const Toggleable = toggleable(open, (bool) => (open = bool));
 	const { button, panel } = initPopover({ Toggleable, GroupContext });

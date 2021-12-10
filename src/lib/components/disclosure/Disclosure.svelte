@@ -1,47 +1,46 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
 	import type { Readable } from 'svelte/store';
-	import { use_id, useNamer } from '$lib/utils';
-	import { propsIn } from '$lib/utils/predicate';
+	import { propsIn, use_id, useNamer, useSubscribers } from '$lib/utils';
 
 	export const DISCLOSURE_CONTEXT_KEY = 'SVELTE-HEADLESS-DISCLOSURE';
 	const generate_id = use_id();
 
 	function initDisclosure({ Toggleable }: DisclosureConfig) {
-		const { useButton, usePanel } = Toggleable;
 		const id = generate_id.next().value as number;
-		const [nameSubcomponent] = useNamer('disclosure', id);
+		const [baptize] = useNamer('disclosure', id);
 
-		const button_id = nameSubcomponent('button');
-		const panel_id = nameSubcomponent('panel');
+		const buttonName = baptize('button');
+		const panelName = baptize('panel');
 		return {
 			button: (node: HTMLElement) => {
-				const DisposeButton = useButton(node);
-				const stopSubcribers = Toggleable.subscribe((isOpen) => {
-					node.ariaExpanded = String(isOpen);
-					if (isOpen) {
-						node.setAttribute('aria-labelledby', panel_id);
-						node.setAttribute('aria-controls', panel_id);
-					} else {
-						node.removeAttribute('aria-labelledby');
-						node.removeAttribute('aria-controls');
-					}
-				});
+				const STOP_SUBSCRIBERS = useSubscribers(
+					Toggleable.useButton(node, { useDefaultKeys: true }),
+					Toggleable.subscribe((isOpen) => {
+						node.ariaExpanded = String(isOpen);
+						if (isOpen) {
+							node.setAttribute('aria-labelledby', panelName);
+							node.setAttribute('aria-controls', panelName);
+						} else {
+							node.removeAttribute('aria-labelledby');
+							node.removeAttribute('aria-controls');
+						}
+					})
+				);
 
-				node.id = button_id;
+				node.id = buttonName;
 				return {
 					destroy: () => {
-						DisposeButton(), stopSubcribers();
+						STOP_SUBSCRIBERS();
 					},
 				};
 			},
 			panel: (node: HTMLElement) => {
-				const DisposePanel = usePanel({ panelElement: node });
-
-				node.id = panel_id;
+				const DISPOSE_PANEL = Toggleable.usePanel(node);
+				node.id = panelName;
 				return {
 					destroy: () => {
-						DisposePanel();
+						DISPOSE_PANEL();
 					},
 				};
 			},
@@ -69,7 +68,6 @@
 	export let open = false;
 
 	const Toggleable = toggleable(open, (bool) => (open = bool));
-	const { close } = Toggleable;
 
 	$: Toggleable.set(open);
 
@@ -77,7 +75,7 @@
 	setContext(DISCLOSURE_CONTEXT_KEY, { Open: Toggleable, button, panel });
 </script>
 
-<slot {open} {button} {panel} {close} />
+<slot {open} {button} {panel} close={Toggleable.close} />
 {#if open}
 	<slot name="panel" />
 {/if}

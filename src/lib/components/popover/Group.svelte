@@ -46,9 +46,7 @@
 			if (!isHTMLElement(target)) return;
 			if (e instanceof MouseEvent) return TargetButton.set(target);
 
-			const isButton = target.tagName === 'BUTTON';
-			if (!isButton && (e.key === 'Enter' || e.code === 'Space'))
-				TargetButton.set(target);
+			if (['Enter', 'Space'].includes(e.code)) TargetButton.set(target);
 		}
 		const MainLoop = derived(
 			[IsMember, Expanded, TargetButton],
@@ -78,13 +76,12 @@
 				const panelName = baptize('panel');
 
 				return function (node: HTMLElement) {
-					node.addEventListener('click', handleSmartClose);
+					node.addEventListener('mousedown', handleSmartClose);
 					node.addEventListener('keydown', handleSmartClose);
 
-					const DISPOSE_BUTTON = Toggleable.useButton(node);
 					Popovers.register(id, { button: node, close });
-
 					const STOP_SUBSCRIBERS = useSubscribers(
+						Toggleable.useButton(node, { useDefaultKeys: true }),
 						Toggleable.subscribe((isOpen) => {
 							CurrentOpenPopover = { button: node, close };
 							node.ariaExpanded = String(isOpen);
@@ -101,9 +98,8 @@
 					node.ariaHasPopup = 'true';
 					return {
 						destroy() {
-							Popovers.unregister(id);
-							DISPOSE_BUTTON(), STOP_SUBSCRIBERS();
-							node.removeEventListener('click', handleSmartClose);
+							Popovers.unregister(id), STOP_SUBSCRIBERS();
+							node.removeEventListener('mousedown', handleSmartClose);
 							node.removeEventListener('keydown', handleSmartClose);
 						},
 					};
@@ -120,13 +116,13 @@
 			},
 			useListeners() {
 				if (!browser) return;
-				window.addEventListener('click', handleClickOutside);
+				window.addEventListener('mousedown', handleClickOutside);
 				window.addEventListener('keydown', handleEscape);
 				window.addEventListener('focus', handleFocusOut, true);
 			},
 			removeListeners() {
 				if (!browser) return;
-				window.removeEventListener('click', handleClickOutside);
+				window.removeEventListener('mousedown', handleClickOutside);
 				window.removeEventListener('keydown', handleEscape);
 				window.removeEventListener('focus', handleFocusOut, true);
 			},
