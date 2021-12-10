@@ -1,13 +1,13 @@
 <script context="module" lang="ts">
 	import type { Toggleable } from '$lib/types';
 	import type { Readable } from 'svelte/store';
-	import { propsIn, use_id, useNamer, useSubscribers } from '$lib/utils';
+	import { propsIn, useId, useNamer, useSubscribers } from '$lib/utils';
 
 	export const DISCLOSURE_CONTEXT_KEY = 'SVELTE-HEADLESS-DISCLOSURE';
-	const generate_id = use_id();
+	const generateId = useId();
 
 	function initDisclosure({ Toggleable }: DisclosureConfig) {
-		const id = generate_id.next().value as number;
+		const id = generateId.next().value as number;
 		const [baptize] = useNamer('disclosure', id);
 
 		const buttonName = baptize('button');

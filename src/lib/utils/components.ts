@@ -11,7 +11,7 @@ export function useNamer(componentName: string, id: number) {
 	] as [namer: (subcomponentName: string, id?: number) => string, baseName: string];
 }
 
-export function* use_id() {
+export function* useId() {
 	let index = 0;
 	while (true) yield index++;
 }

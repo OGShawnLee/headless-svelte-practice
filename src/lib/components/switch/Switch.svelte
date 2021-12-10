@@ -2,10 +2,10 @@
 	import type { Activable, Notifier } from '$lib/types';
 	import { registrable } from '$lib/stores';
 	import { propsIn } from '$lib/utils/predicate';
-	import { use_id, useNamer, useSubscribers } from '$lib/utils';
+	import { useId, useNamer, useSubscribers } from '$lib/utils';
 
 	export const SWITCH_KEY = 'SVELTE-HEADLESS-SWITCH';
-	const generateId = use_id();
+	const generateId = useId();
 
 	function initSwitch({ Activable }: SwitchSettings) {
 		const { toggle } = Activable;
@@ -15,8 +15,8 @@
 		const Labels = registrable<string>([]);
 		const Descriptions = registrable<string>([]);
 
-		const labelGenerator = use_id();
-		const descriptionGenerator = use_id();
+		const labelGenerator = useId();
+		const descriptionGenerator = useId();
 
 		const preventDefault = (e: Event) => e.preventDefault();
 		return {

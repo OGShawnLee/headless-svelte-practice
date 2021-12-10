@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
 	import type { Readable } from 'svelte/store';
 	import type { Keys, NavigableStartWith, Notifier, Toggleable } from '$lib/types';
-	import { isNotValidKey, useNamer, useSubscribers, use_id, propsIn } from '$lib/utils';
+	import { isNotValidKey, propsIn, useId, useNamer, useSubscribers } from '$lib/utils';
 	import { navigable, useKeyMatch, useHoverSync } from '$lib/stores/navigable';
 	import { registrable, toggleable } from '$lib/stores';
 	import {
@@ -11,7 +11,7 @@
 	} from '$lib/utils/focus-management';
 
 	export const MENU_CONTEXT_KEY = 'SVELTE-HEADLESS-MENU';
-	const generateId = use_id();
+	const generateId = useId();
 
 	function initMenu({ Toggleable }: MenuSettings) {
 		const Items = registrable<HTMLElement>();
@@ -20,7 +20,7 @@
 		const id = generateId.next().value as number;
 		const [baptize, menuName] = useNamer('menu', id);
 		const buttonName = baptize('button');
-		const generateItemId = use_id();
+		const generateItemId = useId();
 
 		let startWith: NavigableStartWith = 'AUTO';
 		return {

@@ -3,19 +3,19 @@
 	import type { Notifiable, Notifier } from '$lib/types';
 	import { hashable, notifiable, registrable } from '$lib/stores';
 	import { navigable, useManualBlur } from '$lib/stores/navigable';
-	import { use_id, useNamer, useSubscribers } from '$lib/utils';
+	import { useId, useNamer, useSubscribers } from '$lib/utils';
 	import { makeFocusable, removeFocusable } from '$lib/utils/focus-management';
 	import { propsIn } from '$lib/utils/predicate';
 
 	export const TABS_CONTEXT_KEY = 'SVELTE-HEADLESS-TABS';
-	const generate_id = use_id();
+	const generateId = useId();
 
 	function initTabs({ Index, Manual, Vertical }: TabsSettings) {
 		const Tabs = registrable<HTMLElement>([]);
 		const Panels = hashable<number, string | undefined>();
 		const Navigable = navigable({ Items: Tabs, Index, Manual, Vertical });
 
-		const id = generate_id.next().value as number;
+		const id = generateId.next().value as number;
 		const [baptize, tabsName] = useNamer('tabs', id);
 		return {
 			tablist: (node: HTMLElement) => {

@@ -2,17 +2,17 @@
 	import type { Toggleable } from '$lib/types';
 	import type { Readable, Unsubscriber } from 'svelte/store';
 	import Portal, { portal } from 'svelte-portal/src/Portal.svelte';
-	import { use_id, useNamer, useSubscribers } from '$lib/utils';
+	import { useId, useNamer, useSubscribers } from '$lib/utils';
 	import { focusFirstElement, useFocusTrap } from '$lib/utils/focus-management';
 	import { hideScrollbar } from '$lib/utils/dom-management';
 	import { isHTMLElement, propsIn } from '$lib/utils/predicate';
 	import { component, toggleable } from '$lib/stores';
 
 	export const DIALOG_CONTEXT_KEY = 'SVELTE-HEADLESS-DIALOG';
-	const generate_id = use_id();
+	const generateId = useId();
 
 	function initDialog({ Toggleable, InitialFocus }: DialogSettings) {
-		const id = generate_id.next().value as number;
+		const id = generateId.next().value as number;
 		const [baptize, modalName] = useNamer('dialog', id);
 
 		const Title = component();

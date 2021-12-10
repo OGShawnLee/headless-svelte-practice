@@ -2,13 +2,13 @@
 	import type { Toggleable } from '$lib/types';
 	import type { PopoverGroupContext } from '$lib/components/popover/Group.svelte';
 	import { derived, Readable } from 'svelte/store';
-	import { propsIn, use_id, useNamer, useSubscribers } from '$lib/utils';
+	import { propsIn, useId, useNamer, useSubscribers } from '$lib/utils';
 
 	export const POPOVER_CONTEXT_KEY = 'SVELTE-HEADLESS-POPOVER';
-	const generate_id = use_id();
+	const generateId = useId();
 
 	function initPopover({ Toggleable, GroupContext }: PopoverSettings) {
-		const id = generate_id.next().value as number;
+		const id = generateId.next().value as number;
 		const [baptize] = useNamer('popover', id);
 
 		const buttonName = baptize('button');
